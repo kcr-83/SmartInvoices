@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <StartupProject>SmartInvoices.WebApi</StartupProject>
+  </PropertyGroup>
+</Project>

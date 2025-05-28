@@ -3,6 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using SmartInvoices.Application.Behaviors;
 using SmartInvoices.Application.Common.Mediator;
 using FluentValidation;
+using Scrutor;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SmartInvoices.Application;
 
@@ -18,41 +21,24 @@ public static class DependencyInjection
     /// <returns>Zmodyfikowana kolekcja usług</returns>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // Rejestracja mediatora
-        services.AddScoped<IMediator, MediatorWithBehaviors>();
-        
-        // Rejestracja behaviors dla mediatora
-        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-        
-        // Rejestracja handlerów komend i zapytań
+        // Rejestracja wszystkich handlerów na podstawie konwencji
         var assembly = Assembly.GetExecutingAssembly();
-        RegisterHandlers(services, assembly);
-        
-        // Rejestracja walidatorów
-        services.AddValidatorsFromAssembly(assembly); // Należy dodać pakiet FluentValidation.DependencyInjection
-        
-        return services;
-    }
-    
-    /// <summary>
-    /// Rejestruje handlery komend i zapytań w kontenerze DI.
-    /// </summary>
-    /// <param name="services">Kolekcja usług</param>
-    /// <param name="assembly">Assembly zawierające handlery</param>
-    private static void RegisterHandlers(IServiceCollection services, Assembly assembly)
-    {
-        var handlerTypes = assembly.GetTypes()
-            .Where(t => !t.IsAbstract && !t.IsInterface)
-            .SelectMany(t => t.GetInterfaces(), (t, i) => new { Type = t, Interface = i })
-            .Where(x => x.Interface.IsGenericType && 
-                        x.Interface.GetGenericTypeDefinition() == typeof(IRequestHandler<,>))
-            .ToList();
 
-        foreach (var handler in handlerTypes)
-        {
-            var interfaceType = handler.Interface;
-            services.AddTransient(interfaceType, handler.Type);
-        }
+        // Rejestracja handlerów dla IRequestHandler<TRequest, TResponse>
+        services.Scan(
+            scan =>
+                scan.FromAssemblyOf<IMediator>()
+                    .AddClasses(classes => classes.AssignableTo(typeof(IRequestHandler<,>)))
+                    .AsImplementedInterfaces()
+                    .WithScopedLifetime()
+        );
+        services.AddScoped<IMediator, SimpleMediator>();
+
+        // Rejestracja behawiorów
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+ 
+        return services;
     }
 }

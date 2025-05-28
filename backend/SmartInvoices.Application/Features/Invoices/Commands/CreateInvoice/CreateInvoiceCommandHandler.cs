@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using SmartInvoices.Application.Common;
 using SmartInvoices.Application.Common.Mediator;
+using SmartInvoices.Application.Interfaces.Repositories;
 using SmartInvoices.Domain.Entities;
-using SmartInvoices.Domain.Interfaces;
 
 namespace SmartInvoices.Application.Features.Invoices.Commands.CreateInvoice;
 

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SmartInvoices.Application.Common;
 using SmartInvoices.Application.Common.Mediator;
-using SmartInvoices.Domain.Interfaces;
+using SmartInvoices.Application.Interfaces.Repositories;
 
 namespace SmartInvoices.Application.Features.Invoices.Commands.DeleteInvoice;
 

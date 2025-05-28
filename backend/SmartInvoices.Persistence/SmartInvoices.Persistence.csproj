@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SmartInvoices.Domain\SmartInvoices.Domain.csproj" />
+    <ProjectReference Include="..\SmartInvoices.Application\SmartInvoices.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

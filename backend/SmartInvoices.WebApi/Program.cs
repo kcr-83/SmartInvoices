@@ -1,19 +1,18 @@
-using System.Text;
 using FastEndpoints;
 using FastEndpoints.Swagger;
-using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using SmartInvoices.Application;
 using SmartInvoices.Infrastructure;
 using SmartInvoices.Persistence;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Dodanie serwisów z warstwowej architektury
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
-builder.Services.AddPersistence(builder.Configuration);
+builder.Services.AddPersistenceServices(builder.Configuration);
 
 // Dodanie usług FastEndpoints
 builder.Services
@@ -22,7 +21,7 @@ builder.Services
 
 // Konfiguracja uwierzytelniania JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options => 
+    .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -64,21 +63,17 @@ app.UseHttpsRedirection();
 app.UseCors("AllowSpecificOrigins");
 
 // Konfiguracja FastEndpoints
-app.UseFastEndpoints(c => 
+app.UseFastEndpoints(c =>
 {
     c.Endpoints.RoutePrefix = "api/v1";
     c.Serializer.Options.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     c.Versioning.Prefix = "v";
     c.Versioning.DefaultVersion = 1;
-});
+})
+    .UseSwaggerGen();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Konfiguracja Swagger
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwaggerGen();
-}
 
 app.Run();

@@ -2,8 +2,8 @@ using Microsoft.Extensions.Logging;
 using SmartInvoices.Application.Common;
 using SmartInvoices.Application.Common.Mediator;
 using SmartInvoices.Application.DTOs;
+using SmartInvoices.Application.Interfaces.Repositories;
 using SmartInvoices.Application.Mappings;
-using SmartInvoices.Domain.Interfaces;
 
 namespace SmartInvoices.Application.Features.Invoices.Queries.GetInvoices;
 

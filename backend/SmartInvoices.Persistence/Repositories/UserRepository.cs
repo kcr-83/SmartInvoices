@@ -7,7 +7,7 @@ namespace SmartInvoices.Persistence.Repositories
     /// <summary>
     /// Implementacja repozytorium użytkowników
     /// </summary>
-    public class UserRepository : Repository<User>, IUserRepository
+    public class UserRepository : Repository<User>, Application.Interfaces.Repositories.IUserRepository
     {
         /// <summary>
         /// Konstruktor repozytorium użytkowników

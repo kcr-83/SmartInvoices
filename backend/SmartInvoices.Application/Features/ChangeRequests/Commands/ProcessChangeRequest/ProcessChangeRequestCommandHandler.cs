@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SmartInvoices.Application.Common;
 using SmartInvoices.Application.Common.Mediator;
 using SmartInvoices.Application.Interfaces;
+using SmartInvoices.Application.Interfaces.Repositories;
 using SmartInvoices.Domain.Enums;
 using SmartInvoices.Domain.Interfaces;
 using System;
@@ -18,7 +19,7 @@ public class ProcessChangeRequestCommandHandler
     : IRequestHandler<ProcessChangeRequestCommand, Result>
 {
     private readonly IChangeRequestRepository _changeRequestRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly Interfaces.Repositories.IUserRepository _userRepository;
     private readonly IEmailService _emailService;
     private readonly ILogger<ProcessChangeRequestCommandHandler> _logger;
 
@@ -31,7 +32,7 @@ public class ProcessChangeRequestCommandHandler
     /// <param name="logger">Logger</param>
     public ProcessChangeRequestCommandHandler(
         IChangeRequestRepository changeRequestRepository,
-        IUserRepository userRepository,
+        Interfaces.Repositories.IUserRepository userRepository,
         IEmailService emailService,
         ILogger<ProcessChangeRequestCommandHandler> logger
     )
