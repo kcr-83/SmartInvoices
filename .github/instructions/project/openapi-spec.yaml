@@ -1,0 +1,1392 @@
+openapi: 3.0.3
+info:
+  title: System Zarządzania Fakturami API
+  description: |
+    API dla systemu zarządzania fakturami umożliwiającego użytkownikom przeglądanie faktur, 
+    wnioskowanie o zmiany w pozycjach oraz składanie wniosków o pełne zwroty.
+    
+    Implementacja zgodna z wzorcem Clean Architecture i CQRS.
+  version: 1.0.0
+  contact:
+    name: Zespół Rozwoju Aplikacji
+    email: development@example.com
+
+servers:
+  - url: https://api.smart-invoices.example.com/v1
+    description: Serwer produkcyjny
+  - url: https://api-staging.smart-invoices.example.com/v1
+    description: Serwer testowy
+
+tags:
+  - name: Auth
+    description: Endpointy związane z uwierzytelnianiem i autoryzacją
+  - name: Invoices
+    description: Zarządzanie fakturami
+  - name: Invoices.Queries
+    description: Zapytania dotyczące faktur (wzorzec CQRS)
+  - name: Invoices.Commands
+    description: Komendy dotyczące faktur (wzorzec CQRS)
+  - name: LineItems
+    description: Operacje na pozycjach faktur
+  - name: ChangeRequests
+    description: Wnioski o zmiany w pozycjach faktur
+  - name: ChangeRequests.Queries
+    description: Zapytania dotyczące wniosków o zmiany (wzorzec CQRS)
+  - name: ChangeRequests.Commands
+    description: Komendy dotyczące wniosków o zmiany (wzorzec CQRS)
+  - name: RefundRequests
+    description: Wnioski o pełne zwroty faktur
+  - name: RefundRequests.Queries
+    description: Zapytania dotyczące wniosków o zwroty (wzorzec CQRS)
+  - name: RefundRequests.Commands
+    description: Komendy dotyczące wniosków o zwroty (wzorzec CQRS)
+  - name: Admin
+    description: Funkcjonalności administracyjne
+  - name: Notifications
+    description: Zarządzanie powiadomieniami
+
+paths:
+  #
+  # AUTH ENDPOINTS
+  #
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Logowanie użytkownika
+      description: Uwierzytelnia użytkownika i zwraca token JWT
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: jan.kowalski@example.com
+                password:
+                  type: string
+                  format: password
+                  example: Password123!
+      responses:
+        '200':
+          description: Pomyślne logowanie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Niepoprawne dane uwierzytelniające
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # INVOICES ENDPOINTS
+  #
+  /invoices:
+    get:
+      tags:
+        - Invoices
+      summary: Pobierz listę faktur
+      description: Zwraca paginowaną listę faktur dla zalogowanego użytkownika z opcją filtrowania
+      operationId: getInvoices
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Numer strony (indeksowanie od 1)
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: pageSize
+          in: query
+          description: Liczba elementów na stronie
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: status
+          in: query
+          description: Filtrowanie po statusie faktury
+          schema:
+            type: string
+            enum: [Issued, Paid, Overdue, Cancelled]
+        - name: startDate
+          in: query
+          description: Filtrowanie faktur od daty (format ISO 8601)
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          description: Filtrowanie faktur do daty (format ISO 8601)
+          schema:
+            type: string
+            format: date
+        - name: sortBy
+          in: query
+          description: Pole, po którym sortować
+          schema:
+            type: string
+            enum: [issueDate, dueDate, totalAmount, status]
+            default: issueDate
+        - name: sortOrder
+          in: query
+          description: Kierunek sortowania
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Pomyślnie pobrano listę faktur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceList'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Brak uprawnień
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /invoices/{invoiceId}:
+    get:
+      tags:
+        - Invoices
+      summary: Pobierz szczegóły faktury
+      description: Zwraca szczegółowe informacje o konkretnej fakturze wraz z pozycjami
+      operationId: getInvoiceById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          description: ID faktury
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pomyślnie pobrano szczegóły faktury
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceDetail'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Faktura nie znaleziona
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /invoices/{invoiceId}/pdf:
+    get:
+      tags:
+        - Invoices
+      summary: Pobierz fakturę w formacie PDF
+      description: Generuje i pobiera fakturę w formacie PDF
+      operationId: getInvoicePdf
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          description: ID faktury
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pomyślnie wygenerowano PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Faktura nie znaleziona
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # CHANGE REQUESTS ENDPOINTS
+  #
+  /changerequests:
+    get:
+      tags:
+        - ChangeRequests
+      summary: Pobierz wnioski o zmiany
+      description: Zwraca listę wniosków o zmiany w pozycjach faktur
+      operationId: getChangeRequests
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Numer strony
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          description: Liczba elementów na stronie
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          description: Filtrowanie po statusie wniosku
+          schema:
+            type: string
+            enum: [Pending, Approved, Rejected]
+      responses:
+        '200':
+          description: Pomyślnie pobrano listę wniosków
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeRequestList'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - ChangeRequests
+      summary: Utwórz wniosek o zmianę
+      description: Tworzy nowy wniosek o zmianę w pozycji faktury
+      operationId: createChangeRequest
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeRequestCreate'
+      responses:
+        '201':
+          description: Pomyślnie utworzono wniosek
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeRequest'
+        '400':
+          description: Niepoprawne dane
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /changerequests/{changeRequestId}:
+    get:
+      tags:
+        - ChangeRequests
+      summary: Pobierz szczegóły wniosku o zmianę
+      description: Zwraca szczegółowe informacje o konkretnym wniosku o zmianę
+      operationId: getChangeRequestById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: changeRequestId
+          in: path
+          required: true
+          description: ID wniosku o zmianę
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pomyślnie pobrano szczegóły wniosku
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeRequestDetail'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Wniosek nie znaleziony
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # REFUND REQUESTS ENDPOINTS
+  #
+  /refundrequests:
+    get:
+      tags:
+        - RefundRequests
+      summary: Pobierz wnioski o zwrot
+      description: Zwraca listę wniosków o pełne zwroty faktur
+      operationId: getRefundRequests
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Numer strony
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          description: Liczba elementów na stronie
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          description: Filtrowanie po statusie wniosku
+          schema:
+            type: string
+            enum: [Pending, Approved, Rejected]
+      responses:
+        '200':
+          description: Pomyślnie pobrano listę wniosków
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundRequestList'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - RefundRequests
+      summary: Utwórz wniosek o zwrot
+      description: Tworzy nowy wniosek o pełny zwrot faktury
+      operationId: createRefundRequest
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequestCreate'
+      responses:
+        '201':
+          description: Pomyślnie utworzono wniosek
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundRequest'
+        '400':
+          description: Niepoprawne dane
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /refundrequests/{refundRequestId}:
+    get:
+      tags:
+        - RefundRequests
+      summary: Pobierz szczegóły wniosku o zwrot
+      description: Zwraca szczegółowe informacje o konkretnym wniosku o zwrot
+      operationId: getRefundRequestById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: refundRequestId
+          in: path
+          required: true
+          description: ID wniosku o zwrot
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pomyślnie pobrano szczegóły wniosku
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundRequestDetail'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Wniosek nie znaleziony
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /refundrequests/{refundRequestId}/attachments:
+    post:
+      tags:
+        - RefundRequests
+      summary: Dodaj załącznik do wniosku o zwrot
+      description: Dodaje załącznik dokumentu do wniosku o zwrot
+      operationId: addRefundRequestAttachment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: refundRequestId
+          in: path
+          required: true
+          description: ID wniosku o zwrot
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Pomyślnie dodano załącznik
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentAttachment'
+        '400':
+          description: Niepoprawny typ pliku lub przekroczony limit rozmiaru
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Wniosek nie znaleziony
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # ADMIN ENDPOINTS
+  #
+  /admin/changerequests/{changeRequestId}:
+    put:
+      tags:
+        - Admin
+        - ChangeRequests
+      summary: Zaktualizuj status wniosku o zmianę
+      description: Umożliwia administratorowi aktualizację statusu wniosku o zmianę
+      operationId: updateChangeRequestStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: changeRequestId
+          in: path
+          required: true
+          description: ID wniosku o zmianę
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeRequestStatusUpdate'
+      responses:
+        '200':
+          description: Pomyślnie zaktualizowano status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeRequestDetail'
+        '400':
+          description: Niepoprawne dane
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Brak uprawnień administracyjnych
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Wniosek nie znaleziony
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/refundrequests/{refundRequestId}:
+    put:
+      tags:
+        - Admin
+        - RefundRequests
+      summary: Zaktualizuj status wniosku o zwrot
+      description: Umożliwia administratorowi aktualizację statusu wniosku o zwrot
+      operationId: updateRefundRequestStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: refundRequestId
+          in: path
+          required: true
+          description: ID wniosku o zwrot
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequestStatusUpdate'
+      responses:
+        '200':
+          description: Pomyślnie zaktualizowano status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundRequestDetail'
+        '400':
+          description: Niepoprawne dane
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Brak uprawnień administracyjnych
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Wniosek nie znaleziony
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  #
+  # LINE ITEMS ENDPOINTS
+  #
+  /lineitems/{lineItemId}:
+    get:
+      tags:
+        - LineItems
+      summary: Pobierz szczegóły pozycji faktury
+      description: Zwraca szczegółowe informacje o konkretnej pozycji faktury
+      operationId: getLineItemById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: lineItemId
+          in: path
+          required: true
+          description: ID pozycji faktury
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pomyślnie pobrano szczegóły pozycji faktury
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LineItem'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Pozycja faktury nie znaleziona
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /invoices/{invoiceId}/lineitems:
+    get:
+      tags:
+        - LineItems
+        - Invoices
+      summary: Pobierz wszystkie pozycje dla faktury
+      description: Zwraca listę wszystkich pozycji dla konkretnej faktury
+      operationId: getLineItemsByInvoiceId
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          description: ID faktury
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pomyślnie pobrano listę pozycji faktury
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LineItem'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Faktura nie znaleziona
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+  /lineitems/{lineItemId}/history:
+    get:
+      tags:
+        - LineItems
+      summary: Pobierz historię zmian pozycji faktury
+      description: Zwraca historię wszystkich zmian dla konkretnej pozycji faktury
+      operationId: getLineItemHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: lineItemId
+          in: path
+          required: true
+          description: ID pozycji faktury
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pomyślnie pobrano historię zmian
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LineItemHistoryEntry'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Pozycja faktury nie znaleziona
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /lineitems/compare:
+    post:
+      tags:
+        - LineItems
+      summary: Porównaj pozycje faktur
+      description: Porównuje dwie lub więcej pozycji faktur i zwraca różnice
+      operationId: compareLineItems
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - lineItemIds
+              properties:
+                lineItemIds:
+                  type: array
+                  items:
+                    type: integer
+                  example: [1, 5, 9]
+      responses:
+        '200':
+          description: Pomyślnie porównano pozycje
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LineItemComparison'
+        '400':
+          description: Niepoprawne dane w żądaniu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Jedna lub więcej pozycji nie znaleziona
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # AUTH SCHEMAS
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expiration:
+          type: string
+          format: date-time
+          example: "2023-12-31T23:59:59Z"
+        user:
+          type: object
+          properties:
+            userId:
+              type: integer
+              example: 1
+            email:
+              type: string
+              format: email
+              example: "jan.kowalski@example.com"
+            firstName:
+              type: string
+              example: "Jan"
+            lastName:
+              type: string
+              example: "Kowalski"
+            isAdmin:
+              type: boolean
+              example: false
+
+    # INVOICE SCHEMAS
+    Invoice:
+      type: object
+      properties:
+        invoiceId:
+          type: integer
+          example: 1
+        invoiceNumber:
+          type: string
+          example: "FV/2023/10/001"
+        issueDate:
+          type: string
+          format: date-time
+          example: "2023-10-15T00:00:00Z"
+        dueDate:
+          type: string
+          format: date-time
+          example: "2023-11-15T00:00:00Z"
+        totalAmount:
+          type: number
+          format: double
+          example: 1250.50
+        taxAmount:
+          type: number
+          format: double
+          example: 234.25
+        status:
+          type: string
+          enum: [Issued, Paid, Overdue, Cancelled]
+          example: "Issued"
+        paymentDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    InvoiceList:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          example: 25
+        pageSize:
+          type: integer
+          example: 10
+        currentPage:
+          type: integer
+          example: 1
+        totalPages:
+          type: integer
+          example: 3
+        invoices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invoice'
+
+    LineItem:
+      type: object
+      properties:
+        lineItemId:
+          type: integer
+          example: 1
+        description:
+          type: string
+          example: "Abonament telefoniczny"
+        quantity:
+          type: integer
+          example: 1
+        unitPrice:
+          type: number
+          format: double
+          example: 49.99
+        taxRate:
+          type: number
+          format: double
+          example: 23.00
+        totalPrice:
+          type: number
+          format: double
+          example: 61.49
+
+    InvoiceDetail:
+      type: object
+      properties:
+        invoiceId:
+          type: integer
+          example: 1
+        invoiceNumber:
+          type: string
+          example: "FV/2023/10/001"
+        issueDate:
+          type: string
+          format: date-time
+          example: "2023-10-15T00:00:00Z"
+        dueDate:
+          type: string
+          format: date-time
+          example: "2023-11-15T00:00:00Z"
+        totalAmount:
+          type: number
+          format: double
+          example: 1250.50
+        taxAmount:
+          type: number
+          format: double
+          example: 234.25
+        status:
+          type: string
+          enum: [Issued, Paid, Overdue, Cancelled]
+          example: "Issued"
+        paymentDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        notes:
+          type: string
+          nullable: true
+          example: "Faktura za usługi telekomunikacyjne - październik 2023"
+        lineItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineItem'
+
+    # CHANGE REQUEST SCHEMAS
+    ChangeRequestCreate:
+      type: object
+      required:
+        - lineItemId
+        - reason
+      properties:
+        lineItemId:
+          type: integer
+          example: 3
+        requestedQuantity:
+          type: integer
+          nullable: true
+          example: 250
+        requestedUnitPrice:
+          type: number
+          format: double
+          nullable: true
+          example: null
+        requestedDescription:
+          type: string
+          nullable: true
+          example: null
+        reason:
+          type: string
+          example: "Naliczono zbyt dużo minut rozmów międzynarodowych. Powinno być 250 zamiast 325."
+
+    ChangeRequest:
+      type: object
+      properties:
+        changeRequestId:
+          type: integer
+          example: 1
+        status:
+          type: string
+          enum: [Pending, Approved, Rejected]
+          example: "Pending"
+        requestDate:
+          type: string
+          format: date-time
+          example: "2023-11-05T14:30:45Z"
+        lineItemId:
+          type: integer
+          example: 3
+        requestedQuantity:
+          type: integer
+          nullable: true
+          example: 250
+        requestedUnitPrice:
+          type: number
+          format: double
+          nullable: true
+          example: null
+        requestedDescription:
+          type: string
+          nullable: true
+          example: null
+        reason:
+          type: string
+          example: "Naliczono zbyt dużo minut rozmów międzynarodowych. Powinno być 250 zamiast 325."
+
+    ChangeRequestList:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          example: 3
+        changeRequests:
+          type: array
+          items:
+            type: object
+            properties:
+              changeRequestId:
+                type: integer
+                example: 1
+              status:
+                type: string
+                enum: [Pending, Approved, Rejected]
+                example: "Pending"
+              requestDate:
+                type: string
+                format: date-time
+                example: "2023-11-05T14:30:45Z"
+              lineItemId:
+                type: integer
+                example: 3
+              invoiceNumber:
+                type: string
+                example: "FV/2023/10/001"
+              lineItemDescription:
+                type: string
+                example: "Rozmowy międzynarodowe"
+
+    ChangeRequestDetail:
+      type: object
+      properties:
+        changeRequestId:
+          type: integer
+          example: 1
+        status:
+          type: string
+          enum: [Pending, Approved, Rejected]
+          example: "Pending"
+        requestDate:
+          type: string
+          format: date-time
+          example: "2023-11-05T14:30:45Z"
+        lineItemId:
+          type: integer
+          example: 3
+        invoiceId:
+          type: integer
+          example: 1
+        invoiceNumber:
+          type: string
+          example: "FV/2023/10/001"
+        lineItem:
+          $ref: '#/components/schemas/LineItem'
+        requestedQuantity:
+          type: integer
+          nullable: true
+          example: 250
+        requestedUnitPrice:
+          type: number
+          format: double
+          nullable: true
+          example: null
+        requestedDescription:
+          type: string
+          nullable: true
+          example: null
+        reason:
+          type: string
+          example: "Naliczono zbyt dużo minut rozmów międzynarodowych. Powinno być 250 zamiast 325."
+        adminNotes:
+          type: string
+          nullable: true
+          example: null
+        reviewedBy:
+          type: integer
+          nullable: true
+          example: null
+        reviewDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    ChangeRequestStatusUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [Approved, Rejected]
+          example: "Approved"
+        adminNotes:
+          type: string
+          example: "Zmiana zaakceptowana po weryfikacji logów połączeń."
+
+    # REFUND REQUEST SCHEMAS
+    RefundRequestCreate:
+      type: object
+      required:
+        - invoiceId
+        - reason
+      properties:
+        invoiceId:
+          type: integer
+          example: 2
+        reason:
+          type: string
+          example: "Usługa nie została zrealizowana zgodnie z umową. Brak dostępu do internetu przez cały okres rozliczeniowy."
+
+    RefundRequest:
+      type: object
+      properties:
+        refundRequestId:
+          type: integer
+          example: 1
+        status:
+          type: string
+          enum: [Pending, Approved, Rejected]
+          example: "Pending"
+        requestDate:
+          type: string
+          format: date-time
+          example: "2023-11-06T09:12:35Z"
+        invoiceId:
+          type: integer
+          example: 2
+        invoiceNumber:
+          type: string
+          example: "FV/2023/10/002"
+        reason:
+          type: string
+          example: "Usługa nie została zrealizowana zgodnie z umową. Brak dostępu do internetu przez cały okres rozliczeniowy."
+
+    RefundRequestList:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          example: 2
+        refundRequests:
+          type: array
+          items:
+            type: object
+            properties:
+              refundRequestId:
+                type: integer
+                example: 1
+              status:
+                type: string
+                enum: [Pending, Approved, Rejected]
+                example: "Pending"
+              requestDate:
+                type: string
+                format: date-time
+                example: "2023-11-06T09:12:35Z"
+              invoiceId:
+                type: integer
+                example: 2
+              invoiceNumber:
+                type: string
+                example: "FV/2023/10/002"
+              totalAmount:
+                type: number
+                format: double
+                example: 845.75
+
+    RefundRequestDetail:
+      type: object
+      properties:
+        refundRequestId:
+          type: integer
+          example: 1
+        status:
+          type: string
+          enum: [Pending, Approved, Rejected]
+          example: "Pending"
+        requestDate:
+          type: string
+          format: date-time
+          example: "2023-11-06T09:12:35Z"
+        invoiceId:
+          type: integer
+          example: 2
+        invoiceNumber:
+          type: string
+          example: "FV/2023/10/002"
+        reason:
+          type: string
+          example: "Usługa nie została zrealizowana zgodnie z umową. Brak dostępu do internetu przez cały okres rozliczeniowy."
+        adminNotes:
+          type: string
+          nullable: true
+          example: null
+        reviewedBy:
+          type: integer
+          nullable: true
+          example: null
+        reviewDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        refundAmount:
+          type: number
+          format: double
+          nullable: true
+          example: null
+        refundDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentAttachment'
+
+    RefundRequestStatusUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [Approved, Rejected]
+          example: "Approved"
+        adminNotes:
+          type: string
+          example: "Zwrot zaakceptowany. Potwierdzono brak dostępu do usługi."
+        refundAmount:
+          type: number
+          format: double
+          example: 845.75
+
+    DocumentAttachment:
+      type: object
+      properties:
+        attachmentId:
+          type: integer
+          example: 1
+        fileName:
+          type: string
+          example: "dowod_brak_internetu.pdf"
+        fileSize:
+          type: integer
+          example: 1245678
+        fileType:
+          type: string
+          example: "application/pdf"
+        uploadDate:
+          type: string
+          format: date-time
+          example: "2023-11-06T09:15:22Z"
+
+    # ERROR SCHEMAS
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "NotFound"
+        message:
+          type: string
+          example: "Faktura o ID 999 nie istnieje."
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "ValidationError"
+        message:
+          type: string
+          example: "Nieprawidłowe dane we wniosku."
+        details:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            reason: "Wymagane jest podanie uzasadnienia."
+
+    # LINE ITEM HISTORY SCHEMAS
+    LineItemHistoryEntry:
+      type: object
+      properties:
+        changeDate:
+          type: string
+          format: date-time
+          example: "2023-10-20T14:30:45Z"
+        changedBy:
+          type: string
+          example: "Jan Kowalski"
+        changeType:
+          type: string
+          enum: [Created, Modified, ChangeRequested, ChangeApproved, ChangeRejected]
+          example: "Modified"
+        previousValues:
+          $ref: '#/components/schemas/LineItemValues'
+        currentValues:
+          $ref: '#/components/schemas/LineItemValues'
+        notes:
+          type: string
+          nullable: true
+          example: "Zmiana zatwierdzona w wyniku wniosku o korektę faktury"
+
+    LineItemValues:
+      type: object
+      properties:
+        description:
+          type: string
+          example: "Abonament telefoniczny"
+        quantity:
+          type: integer
+          example: 1
+        unitPrice:
+          type: number
+          format: double
+          example: 49.99
+        taxRate:
+          type: number
+          format: double
+          example: 23.00
+        totalPrice:
+          type: number
+          format: double
+          example: 61.49
+    
+    LineItemComparison:
+      type: object
+      properties:
+        comparedLineItems:
+          type: array
+          items:
+            type: object
+            properties:
+              lineItemId:
+                type: integer
+                example: 1
+              invoiceNumber:
+                type: string
+                example: "FV/2023/10/001"
+              description:
+                type: string
+                example: "Abonament telefoniczny"
+        differences:
+          type: array
+          items:
+            type: object
+            properties:
+              property:
+                type: string
+                example: "unitPrice"
+              values:
+                type: object
+                additionalProperties:
+                  type: string
+                example:
+                  "1": "49.99"
+                  "5": "59.99"
+                  "9": "45.99"

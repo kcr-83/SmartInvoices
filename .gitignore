@@ -1,0 +1,197 @@
+# .NET Core and ASP.NET Core specific ignores
+## Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+.vs/
+.vscode/
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+*.log
+*.tlog
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+ipch/
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# Visual Studio project user settings
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.lock.json
+*.generated.cs
+
+# ReSharper and JetBrains Rider
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+.idea/
+
+# .NET Scaffolding
+ScaffoldingReadMe.txt
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# NuGet Packages
+*.nupkg
+# NuGet Symbol Packages
+*.snupkg
+# The packages folder can be ignored because of Package Restore
+**/[Pp]ackages/*
+# except build/, which is used as an MSBuild target.
+!**/[Pp]ackages/build/
+# Uncomment if necessary however generally it will be regenerated when needed
+#!**/[Pp]ackages/repositories.config
+# NuGet v3's project.json files produces more ignorable files
+*.nuget.props
+*.nuget.targets
+
+# Windows Store app package directories and files
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.appx
+*.appxbundle
+*.appxupload
+
+# Test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+nunit-*.xml
+
+# Local .NET configuration
+*.local.json
+**/Properties/launchSettings.json
+
+# End of .NET ignores
+
+# Angular specific ignores
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node.js
+/node_modules
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+package-lock.json
+.pnpm-debug.log*
+
+# Angular cache
+.angular/cache/
+.sass-cache/
+.eslintcache
+.nx/cache
+connect.lock
+
+# Testing
+/coverage
+/.nyc_output
+
+# Angular environment variables
+/src/environments/*.js
+/src/environments/*.prod.ts
+
+# IDEs and editors
+.project
+.classpath
+.c9/
+*.launch
+*.sublime-workspace
+*.sublime-project
+
+# Visual Studio Code specific files
+.history/*
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# misc Angular
+/.angular/cache
+/.sass-cache
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Chrome profiler files
+chrome-profiler-events*.json
+
+# End of Angular ignores
+
+# Common IDE files
+.editorconfig
+*.sw?
+*~

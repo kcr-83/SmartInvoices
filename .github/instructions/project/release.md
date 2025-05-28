@@ -1,0 +1,44 @@
+```markdown
+# System Zarządzania Fakturami - Wersja 1.0
+
+## Nowe efektywne narzędzie do kompleksowego zarządzania fakturami
+
+Nowy System Zarządzania Fakturami zapewnia kompleksową platformę do przeglądania, modyfikowania i zwrotów faktur, znacząco usprawniając procesy finansowe Twojej firmy.
+
+### Trzy główne korzyści:
+
+1. **Oszczędność czasu** - błyskawiczne wyszukiwanie i filtrowanie dokumentów
+2. **Większa kontrola** - intuicyjny proces wnioskowania o zmiany i zwroty
+3. **Przejrzystość procesów** - śledzenie statusu wszystkich operacji w czasie rzeczywistym
+
+### Dla standardowych użytkowników:
+
+* **Zarządzanie dokumentami**
+  * Przeglądanie listy faktur z zaawansowanym filtrowaniem i sortowaniem
+  * Dostęp do szczegółowych informacji o transakcjach
+  * Eksport dokumentów do formatu PDF
+
+* **Wnioski o zmiany**
+  * Precyzyjne wskazywanie pozycji wymagających korekty
+  * Określanie rodzaju zmiany (ilość, cena, opis)
+  * Możliwość uzasadnienia każdej prośby o zmianę
+
+* **Obsługa zwrotów**
+  * Składanie wniosków o pełny zwrot kwoty faktury
+  * Załączanie dokumentacji uzasadniającej
+  * Monitorowanie statusu przetwarzania wniosku
+
+### Dla administratorów:
+
+* **Panel administracyjny**
+  * Zarządzanie kontami użytkowników z różnymi poziomami dostępu
+  * Efektywne przetwarzanie wniosków o zmiany i zwroty
+  * Dodawanie komentarzy wyjaśniających podjęte decyzje
+
+### Aspekty techniczne:
+
+* Wydajna architektura trójwarstwowa
+* Frontend oparty na Angular - responsywność i intuicyjność
+* Backend w .NET Core WebAPI - bezpieczeństwo i stabilność
+* Zgodność z przepisami o ochronie danych osobowych
+```

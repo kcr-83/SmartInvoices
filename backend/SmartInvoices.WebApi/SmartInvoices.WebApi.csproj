@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FastEndpoints" Version="6.1.0" />
+    <PackageReference Include="FastEndpoints.Swagger" Version="6.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmartInvoices.Domain\SmartInvoices.Domain.csproj" />
+    <ProjectReference Include="..\SmartInvoices.Application\SmartInvoices.Application.csproj" />
+    <ProjectReference Include="..\SmartInvoices.Infrastructure\SmartInvoices.Infrastructure.csproj" />
+    <ProjectReference Include="..\SmartInvoices.Persistence\SmartInvoices.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>

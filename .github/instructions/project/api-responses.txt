@@ -1,0 +1,335 @@
+// ============================================================================
+// Przykładowe odpowiedzi API dla Systemu Zarządzania Fakturami (Clean Architecture, CQRS)
+// ============================================================================
+
+// ============================================================================
+// 1. Zarządzanie Użytkownikami
+// ============================================================================
+
+// 1.1 Logowanie użytkownika (POST /api/auth/login)
+// Komenda: LoginCommand
+// Request:
+{
+  "email": "jan.kowalski@example.com",
+  "password": "Password123!"
+}
+
+// Response (200 OK):
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiration": "2023-12-31T23:59:59Z",
+  "user": {
+    "userId": 1,
+    "email": "jan.kowalski@example.com",
+    "firstName": "Jan",
+    "lastName": "Kowalski",
+    "isAdmin": false
+  }
+}
+
+// Response (401 Unauthorized):
+{
+  "error": "Błędne dane logowania",
+  "message": "Nieprawidłowy email lub hasło."
+}
+
+// ============================================================================
+// 2. Zarządzanie Fakturami
+// ============================================================================
+
+// 2.1 Pobieranie listy faktur (GET /api/invoices/queries/getinvoices)
+// Query: GetInvoicesQuery
+// Response (200 OK):
+{
+  "totalCount": 25,
+  "pageSize": 10,
+  "currentPage": 1,
+  "totalPages": 3,
+  "invoices": [
+    {
+      "invoiceId": 1,
+      "invoiceNumber": "FV/2023/10/001",
+      "issueDate": "2023-10-15T00:00:00Z",
+      "dueDate": "2023-11-15T00:00:00Z",
+      "totalAmount": 1250.50,
+      "taxAmount": 234.25,
+      "status": "Issued",
+      "paymentDate": null
+    },
+    {
+      "invoiceId": 2,
+      "invoiceNumber": "FV/2023/10/002",
+      "issueDate": "2023-10-20T00:00:00Z",
+      "dueDate": "2023-11-20T00:00:00Z",
+      "totalAmount": 845.75,
+      "taxAmount": 158.18,
+      "status": "Paid",
+      "paymentDate": "2023-11-10T00:00:00Z"
+    }
+    // więcej faktur...
+  ]
+}
+
+// 2.2 Pobieranie jednej faktury (GET /api/invoices/queries/getinvoicebyid/{invoiceId})
+// Query: GetInvoiceByIdQuery
+// Response (200 OK):
+{
+  "invoiceId": 1,
+  "invoiceNumber": "FV/2023/10/001",
+  "issueDate": "2023-10-15T00:00:00Z",
+  "dueDate": "2023-11-15T00:00:00Z",
+  "totalAmount": 1250.50,
+  "taxAmount": 234.25,
+  "status": "Issued",
+  "paymentDate": null,
+  "notes": "Faktura za usługi telekomunikacyjne - październik 2023",
+  "lineItems": [
+    {
+      "lineItemId": 1,
+      "description": "Abonament telefoniczny",
+      "quantity": 1,
+      "unitPrice": 49.99,
+      "taxRate": 23.00,
+      "totalPrice": 61.49
+    },
+    {
+      "lineItemId": 2,
+      "description": "Usługi internetowe - pakiet premium",
+      "quantity": 1,
+      "unitPrice": 89.99,
+      "taxRate": 23.00,
+      "totalPrice": 110.69
+    },
+    {
+      "lineItemId": 3,
+      "description": "Rozmowy międzynarodowe",
+      "quantity": 325,
+      "unitPrice": 0.50,
+      "taxRate": 23.00,
+      "totalPrice": 199.88
+    }
+    // więcej pozycji...
+  ]
+}
+
+// Response (404 Not Found):
+{
+  "error": "NotFound",
+  "message": "Faktura o ID 999 nie istnieje."
+}
+
+// 2.3 Filtrowanie faktur (GET /api/invoices/queries/getfilteredinvoices?status=Issued&startDate=2023-10-01&endDate=2023-10-31)
+// Query: GetFilteredInvoicesQuery
+// Response (200 OK):
+{
+  "totalCount": 8,
+  "pageSize": 10,
+  "currentPage": 1,
+  "totalPages": 1,
+  "invoices": [
+    {
+      "invoiceId": 1,
+      "invoiceNumber": "FV/2023/10/001",
+      "issueDate": "2023-10-15T00:00:00Z",
+      "dueDate": "2023-11-15T00:00:00Z",
+      "totalAmount": 1250.50,
+      "taxAmount": 234.25,
+      "status": "Issued",
+      "paymentDate": null
+    }
+    // więcej faktur...
+  ]
+}
+
+// ============================================================================
+// 3. Wnioski o Zmiany w Pozycjach Faktury
+// ============================================================================
+
+// 3.1 Tworzenie wniosku o zmianę (POST /api/changerequests/commands/createchangerequest)
+// Command: CreateChangeRequestCommand
+// Request:
+{
+  "lineItemId": 3,
+  "requestedQuantity": 250,
+  "requestedUnitPrice": null,
+  "requestedDescription": null,
+  "reason": "Naliczono zbyt dużo minut rozmów międzynarodowych. Powinno być 250 zamiast 325."
+}
+
+// Response (201 Created):
+{
+  "changeRequestId": 1,
+  "status": "Pending",
+  "requestDate": "2023-11-05T14:30:45Z",
+  "lineItemId": 3,
+  "requestedQuantity": 250,
+  "requestedUnitPrice": null,
+  "requestedDescription": null,
+  "reason": "Naliczono zbyt dużo minut rozmów międzynarodowych. Powinno być 250 zamiast 325."
+}
+
+// Response (400 Bad Request):
+{
+  "error": "ValidationError",
+  "message": "Nieprawidłowe dane we wniosku.",
+  "details": {
+    "reason": "Wymagane jest podanie uzasadnienia."
+  }
+}
+
+// 3.2 Pobieranie listy wniosków o zmiany (GET /api/changerequests/queries/getchangerequests)
+// Query: GetChangeRequestsQuery
+// Response (200 OK):
+{
+  "totalCount": 3,
+  "changeRequests": [
+    {
+      "changeRequestId": 1,
+      "status": "Pending",
+      "requestDate": "2023-11-05T14:30:45Z",
+      "lineItemId": 3,
+      "invoiceNumber": "FV/2023/10/001",
+      "lineItemDescription": "Rozmowy międzynarodowe"
+    },
+    {
+      "changeRequestId": 2,
+      "status": "Approved",
+      "requestDate": "2023-11-03T10:15:22Z",
+      "lineItemId": 5,
+      "invoiceNumber": "FV/2023/09/012",
+      "lineItemDescription": "Usługi dodatkowe - roaming"
+    }
+    // więcej wniosków...
+  ]
+}
+
+// 3.3 Pobieranie szczegółów wniosku o zmianę (GET /api/changerequests/queries/getchangerequestbyid/{changeRequestId})
+// Query: GetChangeRequestByIdQuery
+// Response (200 OK):
+{
+  "changeRequestId": 1,
+  "status": "Pending",
+  "requestDate": "2023-11-05T14:30:45Z",
+  "lineItemId": 3,
+  "invoiceId": 1,
+  "invoiceNumber": "FV/2023/10/001",
+  "lineItem": {
+    "lineItemId": 3,
+    "description": "Rozmowy międzynarodowe",
+    "quantity": 325,
+    "unitPrice": 0.50,
+    "taxRate": 23.00,
+    "totalPrice": 199.88
+  },
+  "requestedQuantity": 250,
+  "requestedUnitPrice": null,
+  "requestedDescription": null,
+  "reason": "Naliczono zbyt dużo minut rozmów międzynarodowych. Powinno być 250 zamiast 325.",
+  "adminNotes": null,
+  "reviewedBy": null,
+  "reviewDate": null
+}
+
+// ============================================================================
+// 4. Wnioski o Pełne Zwroty
+// ============================================================================
+
+// 4.1 Tworzenie wniosku o zwrot (POST /api/refundrequests/commands/createrefundrequest)
+// Command: CreateRefundRequestCommand
+// Request:
+{
+  "invoiceId": 2,
+  "reason": "Usługa nie została zrealizowana zgodnie z umową. Brak dostępu do internetu przez cały okres rozliczeniowy."
+}
+
+// Response (201 Created):
+{
+  "refundRequestId": 1,
+  "status": "Pending",
+  "requestDate": "2023-11-06T09:12:35Z",
+  "invoiceId": 2,
+  "invoiceNumber": "FV/2023/10/002",
+  "reason": "Usługa nie została zrealizowana zgodnie z umową. Brak dostępu do internetu przez cały okres rozliczeniowy."
+}
+
+// 4.2 Pobieranie listy wniosków o zwrot (GET /api/refundrequests/queries/getrefundrequests)
+// Query: GetRefundRequestsQuery
+// Response (200 OK):
+{
+  "totalCount": 2,
+  "refundRequests": [
+    {
+      "refundRequestId": 1,
+      "status": "Pending",
+      "requestDate": "2023-11-06T09:12:35Z",
+      "invoiceId": 2,
+      "invoiceNumber": "FV/2023/10/002",
+      "totalAmount": 845.75
+    },
+    {
+      "refundRequestId": 2,
+      "status": "Rejected",
+      "requestDate": "2023-10-20T16:45:11Z",
+      "invoiceId": 7,
+      "invoiceNumber": "FV/2023/09/005",
+      "totalAmount": 1520.30
+    }
+    // więcej wniosków...
+  ]
+}
+
+// 4.3 Dodawanie załącznika do wniosku o zwrot (POST /api/refundrequests/commands/addattachment/{refundRequestId})
+// Command: AddRefundRequestAttachmentCommand
+// Uwaga: Używa multipart/form-data do przesyłania plików
+
+// Response (201 Created):
+{
+  "attachmentId": 1,
+  "fileName": "dowod_brak_internetu.pdf",
+  "fileSize": 1245678,
+  "fileType": "application/pdf",
+  "uploadDate": "2023-11-06T09:15:22Z"
+}
+
+// ============================================================================
+// 5. Panel Administratora
+// ============================================================================
+
+// 5.1 Aktualizacja statusu wniosku o zmianę (PUT /api/admin/changerequests/commands/updatestatus/{changeRequestId})
+// Command: UpdateChangeRequestStatusCommand
+// Request:
+{
+  "status": "Approved",
+  "adminNotes": "Zmiana zaakceptowana po weryfikacji logów połączeń."
+}
+
+// Response (200 OK):
+{
+  "changeRequestId": 1,
+  "status": "Approved",
+  "adminNotes": "Zmiana zaakceptowana po weryfikacji logów połączeń.",
+  "reviewedBy": 5,
+  "reviewerName": "Anna Nowak",
+  "reviewDate": "2023-11-07T11:25:40Z"
+}
+
+// 5.2 Aktualizacja statusu wniosku o zwrot (PUT /api/admin/refundrequests/commands/updatestatus/{refundRequestId})
+// Command: UpdateRefundRequestStatusCommand
+// Request:
+{
+  "status": "Approved",
+  "adminNotes": "Zwrot zaakceptowany. Potwierdzono brak dostępu do usługi.",
+  "refundAmount": 845.75
+}
+
+// Response (200 OK):
+{
+  "refundRequestId": 1,
+  "status": "Approved",
+  "adminNotes": "Zwrot zaakceptowany. Potwierdzono brak dostępu do usługi.",
+  "reviewedBy": 5,
+  "reviewerName": "Anna Nowak",
+  "reviewDate": "2023-11-07T14:10:15Z",
+  "refundAmount": 845.75,
+  "refundDate": "2023-11-07T14:10:15Z"
+}
