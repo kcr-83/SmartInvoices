@@ -15,17 +15,17 @@ namespace SmartInvoices.Domain.Entities
         /// <summary>
         /// Identyfikator użytkownika, który wykonał akcję
         /// </summary>
-        public int UserId { get; set; }
+        public int RefUserId { get; set; }
         
         /// <summary>
         /// Typ akcji (np. "Create", "Update", "Delete", "Approve", "Reject")
         /// </summary>
-        public string ActionType { get; set; }
+        public string ActionType { get; private set; } = string.Empty;
         
         /// <summary>
         /// Typ encji, której dotyczy akcja (np. "Invoice", "LineItem", "ChangeRequest")
         /// </summary>
-        public string EntityType { get; set; }
+        public string EntityType { get; private set; } = string.Empty;
         
         /// <summary>
         /// Identyfikator encji, której dotyczy akcja
@@ -40,33 +40,32 @@ namespace SmartInvoices.Domain.Entities
         /// <summary>
         /// Stara wartość (opcjonalnie, w formacie JSON)
         /// </summary>
-        public string OldValue { get; set; }
+        public string OldValue { get; private set; } = string.Empty;
         
         /// <summary>
         /// Nowa wartość (opcjonalnie, w formacie JSON)
         /// </summary>
-        public string NewValue { get; set; }
+        public string NewValue { get; private set; } = string.Empty;
         
         /// <summary>
         /// Użytkownik, który wykonał akcję
         /// </summary>
-        public User User { get; set; }
+        public User User { get; private set; } = null!;
         
         /// <summary>
         /// Tworzy nowy wpis w logu audytowym
         /// </summary>
-        public static AuditLog CreateLogEntry(int userId, string actionType, string entityType, 
-            int entityId, string oldValue = null, string newValue = null)
+        public static AuditLog Create(string actionType, string entityType, int entityId, DateTime timestamp, string? oldValue = null, string? newValue = null, User? user = null)
         {
             return new AuditLog
             {
-                UserId = userId,
                 ActionType = actionType,
                 EntityType = entityType,
                 EntityId = entityId,
-                ActionDate = DateTime.Now,
-                OldValue = oldValue,
-                NewValue = newValue
+                ActionDate = timestamp,
+                OldValue = oldValue ?? string.Empty,
+                NewValue = newValue ?? string.Empty,
+                User = user ?? throw new ArgumentNullException(nameof(user))
             };
         }
     }

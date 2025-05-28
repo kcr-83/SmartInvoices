@@ -20,7 +20,7 @@ namespace SmartInvoices.Persistence.Repositories
         /// <inheritdoc />
         public async Task<IEnumerable<RefundRequest>> GetByUserIdAsync(int userId)
         {
-            return await _dbSet.Where(r => r.UserId == userId).ToListAsync();
+            return await _dbSet.Where(r => r.RefUserId == userId).ToListAsync();
         }
 
         /// <inheritdoc />

@@ -11,47 +11,47 @@ namespace SmartInvoices.Domain.Entities
         /// Unikalny identyfikator powiadomienia
         /// </summary>
         public int NotificationId { get; set; }
-        
+
         /// <summary>
         /// Identyfikator użytkownika, do którego należy powiadomienie
         /// </summary>
-        public int UserId { get; set; }
-        
+        public int RefUserId { get; set; }
+
         /// <summary>
         /// Tytuł powiadomienia
         /// </summary>
-        public string Title { get; set; }
-        
+        public string Title { get; private set; } = string.Empty;
+
         /// <summary>
         /// Treść powiadomienia
         /// </summary>
-        public string Message { get; set; }
-        
+        public string Message { get; private set; } = string.Empty;
+
         /// <summary>
         /// Data utworzenia powiadomienia
         /// </summary>
         public DateTime CreatedDate { get; set; }
-        
+
         /// <summary>
         /// Czy powiadomienie zostało przeczytane
         /// </summary>
         public bool IsRead { get; set; }
-        
+
         /// <summary>
         /// Identyfikator powiązanej encji (np. faktury, wniosku)
         /// </summary>
         public int? RelatedEntityId { get; set; }
-        
+
         /// <summary>
         /// Typ powiązanej encji (np. "Invoice", "ChangeRequest", "RefundRequest")
         /// </summary>
-        public string RelatedEntityType { get; set; }
-        
+        public string RelatedEntityType { get; private set; } = string.Empty;
+
         /// <summary>
-        /// Użytkownik, do którego należy powiadomienie
+        /// Użytkownik, do którego kierowane jest powiadomienie
         /// </summary>
-        public User User { get; set; }
-        
+        public User User { get; private set; } = null!;
+
         /// <summary>
         /// Oznacza powiadomienie jako przeczytane
         /// </summary>

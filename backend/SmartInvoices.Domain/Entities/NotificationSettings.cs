@@ -1,3 +1,5 @@
+using System;
+
 namespace SmartInvoices.Domain.Entities
 {
     /// <summary>
@@ -6,6 +8,11 @@ namespace SmartInvoices.Domain.Entities
     public class NotificationSettings
     {
         /// <summary>
+        /// Identyfikator ustawień powiadomień
+        /// </summary>
+        public int NotificationSettingsId { get; set; }
+        
+        /// <summary>
         /// Identyfikator użytkownika, do którego należą ustawienia powiadomień
         /// </summary>
         public int UserId { get; set; }
@@ -13,7 +20,7 @@ namespace SmartInvoices.Domain.Entities
         /// <summary>
         /// Czy powiadomienia email są włączone
         /// </summary>
-        public bool EmailNotificationsEnabled { get; set; }
+        public bool EmailNotificationsEnabled { get; set; } = true;
         
         /// <summary>
         /// Czy powiadomienia w aplikacji są włączone
@@ -23,22 +30,22 @@ namespace SmartInvoices.Domain.Entities
         /// <summary>
         /// Czy powiadomienia o fakturach są włączone
         /// </summary>
-        public bool InvoiceNotifications { get; set; }
+        public bool InvoiceNotifications { get; set; } = true;
         
         /// <summary>
         /// Czy powiadomienia o wnioskach o zmianę są włączone
         /// </summary>
-        public bool ChangeRequestNotifications { get; set; }
+        public bool ChangeRequestNotifications { get; set; } = true;
         
         /// <summary>
         /// Czy powiadomienia o wnioskach o zwrot są włączone
         /// </summary>
-        public bool RefundRequestNotifications { get; set; }
+        public bool RefundRequestNotifications { get; set; } = true;
         
         /// <summary>
-        /// Użytkownik, do którego należą ustawienia powiadomień
+        /// Użytkownik, do którego należą ustawienia
         /// </summary>
-        public User User { get; set; }
+        public User User { get; private set; } = null!;
         
         /// <summary>
         /// Aktualizuje ustawienia powiadomień

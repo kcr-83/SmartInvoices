@@ -77,7 +77,7 @@ namespace SmartInvoices.Persistence
                 entity
                     .HasOne(e => e.User)
                     .WithMany()
-                    .HasForeignKey(e => e.UserId)
+                    .HasForeignKey(e => e.RefUserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.Property(e => e.InvoiceNumber).IsRequired().HasMaxLength(50);
@@ -91,8 +91,9 @@ namespace SmartInvoices.Persistence
             {
                 entity.HasKey(e => e.LineItemId);
 
+                // Poprawiona relacja LineItem -> Invoice
                 entity
-                    .HasOne<Invoice>()
+                    .HasOne(li => li.Invoice)
                     .WithMany(i => i.LineItems)
                     .HasForeignKey(e => e.InvoiceId)
                     .OnDelete(DeleteBehavior.Cascade);
@@ -119,16 +120,18 @@ namespace SmartInvoices.Persistence
             {
                 entity.HasKey(e => e.RefundRequestId);
 
+                // Poprawiona relacja RefundRequest -> Invoice
                 entity
-                    .HasOne<Invoice>()
+                    .HasOne(rr => rr.Invoice)
                     .WithMany(i => i.RefundRequests)
                     .HasForeignKey(e => e.InvoiceId)
                     .OnDelete(DeleteBehavior.Cascade);
 
+                // Poprawiona relacja RefundRequest -> User
                 entity
-                    .HasOne<User>()
+                    .HasOne(rr => rr.User)
                     .WithMany()
-                    .HasForeignKey(e => e.UserId)
+                    .HasForeignKey(e => e.RefUserId)
                     .OnDelete(DeleteBehavior.NoAction);
 
                 entity.Property(e => e.Reason).HasMaxLength(500);
@@ -140,19 +143,21 @@ namespace SmartInvoices.Persistence
             {
                 entity.HasKey(e => e.ChangeRequestId);
 
+                // Poprawiona relacja ChangeRequest -> Invoice
                 entity
-                    .HasOne<Invoice>()
+                    .HasOne(cr => cr.Invoice)
                     .WithMany()
                     .HasForeignKey(e => e.InvoiceId)
                     .OnDelete(DeleteBehavior.Cascade);
 
+                // Poprawiona relacja ChangeRequest -> User
                 entity
-                    .HasOne<User>()
+                    .HasOne(cr => cr.User)
                     .WithMany()
-                    .HasForeignKey(e => e.UserId)
+                    .HasForeignKey(e => e.RefUserId)
                     .OnDelete(DeleteBehavior.NoAction);
 
-                entity.Ignore(e => e.LineItemIds); // Lista identyfikatorów zostanie obsłużona w kodzie aplikacji
+                entity.Ignore(e => e.LineItemIds);
             });
 
             // Konfiguracja relacji dla encji DocumentAttachment
@@ -160,10 +165,11 @@ namespace SmartInvoices.Persistence
             {
                 entity.HasKey(e => e.AttachmentId);
 
+                // Poprawiona relacja DocumentAttachment -> RefundRequest
                 entity
-                    .HasOne<RefundRequest>()
+                    .HasOne(da => da.RefundRequest)
                     .WithMany()
-                    .HasForeignKey(e => e.RefundRequestId)
+                    .HasForeignKey(e => e.RefRefundRequestId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.Property(e => e.FileName).IsRequired().HasMaxLength(255);
@@ -175,10 +181,11 @@ namespace SmartInvoices.Persistence
             {
                 entity.HasKey(e => e.LogId);
 
+                // Poprawiona relacja AuditLog -> User z użyciem właściwości RefUserId
                 entity
-                    .HasOne<User>()
+                    .HasOne(al => al.User)
                     .WithMany()
-                    .HasForeignKey(e => e.UserId)
+                    .HasForeignKey(e => e.RefUserId) // Zmiana z UserId na RefUserId
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.Property(e => e.ActionType).IsRequired().HasMaxLength(50);
@@ -190,10 +197,11 @@ namespace SmartInvoices.Persistence
             {
                 entity.HasKey(e => e.NotificationId);
 
+                // Poprawiona relacja Notification -> User
                 entity
-                    .HasOne<User>()
+                    .HasOne(n => n.User)
                     .WithMany()
-                    .HasForeignKey(e => e.UserId)
+                    .HasForeignKey(e => e.RefUserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.Property(e => e.Title).IsRequired().HasMaxLength(100);
@@ -206,9 +214,9 @@ namespace SmartInvoices.Persistence
                 entity.HasKey(e => e.UserId);
 
                 entity
-                    .HasOne<User>()
-                    .WithOne()
-                    .HasForeignKey<NotificationSettings>(e => e.UserId)
+                    .HasOne(ns => ns.User)
+                    .WithOne(u => u.NotificationSettings)
+                    .HasForeignKey<NotificationSettings>(ns => ns.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
         }

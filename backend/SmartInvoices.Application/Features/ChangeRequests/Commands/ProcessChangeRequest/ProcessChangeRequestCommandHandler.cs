@@ -95,7 +95,7 @@ public class ProcessChangeRequestCommandHandler
             await _changeRequestRepository.UpdateAsync(changeRequest);
 
             // Powiadomienie użytkownika o zmianie statusu
-            var user = await _userRepository.GetByIdAsync(changeRequest.UserId, cancellationToken);
+            var user = await _userRepository.GetByIdAsync(changeRequest.RefUserId, cancellationToken);
             if (user != null)
             {
                 var statusText =

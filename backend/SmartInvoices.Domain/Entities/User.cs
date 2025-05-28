@@ -15,24 +15,24 @@ namespace SmartInvoices.Domain.Entities
         public int UserId { get; set; }
 
         /// <summary>
-        /// Adres email użytkownika (używany do logowania)
+        /// Adres email użytkownika
         /// </summary>
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         /// <summary>
-        /// Zahaszowane hasło użytkownika
+        /// Hash hasła użytkownika
         /// </summary>
-        public string PasswordHash { get; set; }
+        public string PasswordHash { get;  set; } = string.Empty;
 
         /// <summary>
         /// Imię użytkownika
         /// </summary>
-        public string FirstName { get; set; }
+        public string FirstName { get;  set; } = string.Empty;
 
         /// <summary>
         /// Nazwisko użytkownika
         /// </summary>
-        public string LastName { get; set; }
+        public string LastName { get; set; } = string.Empty;
 
         /// <summary>
         /// Data utworzenia konta użytkownika
@@ -70,9 +70,9 @@ namespace SmartInvoices.Domain.Entities
         public ICollection<RefundRequest> RefundRequests { get; set; } = new List<RefundRequest>();
 
         /// <summary>
-        /// Ustawienia powiadomień dla użytkownika
+        /// Ustawienia powiadomień użytkownika
         /// </summary>
-        public NotificationSettings NotificationSettings { get; set; }
+        public NotificationSettings NotificationSettings { get; set; } = null!;
 
         /// <summary>
         /// Kolekcja powiadomień dla użytkownika

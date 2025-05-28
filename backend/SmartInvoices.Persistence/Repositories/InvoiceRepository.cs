@@ -6,26 +6,13 @@ using SmartInvoices.Domain.Interfaces;
 
 namespace SmartInvoices.Persistence.Repositories;
 
-public class InvoiceRepository : Repository<Invoice>, SmartInvoices.Application.Interfaces.Repositories.IInvoiceRepository
+public class InvoiceRepository
+    : Repository<Invoice>,
+        SmartInvoices.Application.Interfaces.Repositories.IInvoiceRepository
 {
-    public InvoiceRepository(IDbContext context)  : base(context) { }
+    public InvoiceRepository(IDbContext context)
+        : base(context) { }
 
-    public async Task<IEnumerable<Invoice>> GetAllAsync()
-    {
-        return await _context.Invoices.ToListAsync();
-    }
-
-    public async Task<Invoice?> GetByIdAsync(int id)
-    {
-        return await _context.Invoices.FindAsync(id);
-    }
-
-    public async Task<int> AddAsync(Invoice invoice)
-    {
-        _context.Invoices.Add(invoice);
-        await _context  .SaveChangesAsync();
-        return invoice.InvoiceId;
-    }
 
     public async Task UpdateAsync(Invoice invoice)
     {
@@ -48,17 +35,38 @@ public class InvoiceRepository : Repository<Invoice>, SmartInvoices.Application.
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<Invoice>> GetByUserIdAsync(int userId, CancellationToken cancellationToken = default)
+    public Task<IEnumerable<Invoice>> GetByUserIdAsync(
+        int userId,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<Invoice>> GetFilteredAsync(int? userId = null, DateTime? fromDate = null, DateTime? toDate = null, InvoiceStatus? status = null, CancellationToken cancellationToken = default)
+    public Task<IEnumerable<Invoice>> GetFilteredAsync(
+        int? userId = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        InvoiceStatus? status = null,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task<List<Invoice>> GetInvoicesAsync(string? searchString, DateTime? startDate, DateTime? endDate, string? status, decimal? minAmount, decimal? maxAmount, string? sortBy, string? sortDirection, int? pageNumber, int? pageSize, CancellationToken cancellationToken = default)
+    public Task<List<Invoice>> GetInvoicesAsync(
+        string? searchString,
+        DateTime? startDate,
+        DateTime? endDate,
+        string? status,
+        decimal? minAmount,
+        decimal? maxAmount,
+        string? sortBy,
+        string? sortDirection,
+        int? pageNumber,
+        int? pageSize,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
@@ -68,7 +76,10 @@ public class InvoiceRepository : Repository<Invoice>, SmartInvoices.Application.
         throw new NotImplementedException();
     }
 
-    public Task<Invoice> GetByInvoiceNumberAsync(string invoiceNumber, CancellationToken cancellationToken = default)
+    public Task<Invoice> GetByInvoiceNumberAsync(
+        string invoiceNumber,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
@@ -88,12 +99,18 @@ public class InvoiceRepository : Repository<Invoice>, SmartInvoices.Application.
         throw new NotImplementedException();
     }
 
-    public Task<LineItem> GetLineItemByIdAsync(int id, CancellationToken cancellationToken = default)
+    public Task<LineItem> GetLineItemByIdAsync(
+        int id,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<LineItem>> GetLineItemsByInvoiceIdAsync(int invoiceId, CancellationToken cancellationToken = default)
+    public Task<IEnumerable<LineItem>> GetLineItemsByInvoiceIdAsync(
+        int invoiceId,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
@@ -103,27 +120,51 @@ public class InvoiceRepository : Repository<Invoice>, SmartInvoices.Application.
         throw new NotImplementedException();
     }
 
-    public Task UpdateLineItemAsync(LineItem lineItem, CancellationToken cancellationToken = default)
+    public Task UpdateLineItemAsync(
+        LineItem lineItem,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task DeleteLineItemAsync(LineItem lineItem, CancellationToken cancellationToken = default)
+    public Task DeleteLineItemAsync(
+        LineItem lineItem,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task<InvoiceListDto> GetInvoicesAsync(int userId, int page = 1, int pageSize = 10, string? status = null, DateTime? startDate = null, DateTime? endDate = null, string? sortBy = null, string? sortOrder = null, CancellationToken cancellationToken = default)
+    public Task<InvoiceListDto> GetInvoicesAsync(
+        int userId,
+        int page = 1,
+        int pageSize = 10,
+        string? status = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        string? sortBy = null,
+        string? sortOrder = null,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task<InvoiceDetailDto?> GetInvoiceByIdAsync(int invoiceId, int userId, CancellationToken cancellationToken = default)
+    public Task<InvoiceDetailDto?> GetInvoiceByIdAsync(
+        int invoiceId,
+        int userId,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }
 
-    public Task<byte[]?> GeneratePdfAsync(int invoiceId, int userId, CancellationToken cancellationToken = default)
+    public Task<byte[]?> GeneratePdfAsync(
+        int invoiceId,
+        int userId,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }

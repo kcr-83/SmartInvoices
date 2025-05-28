@@ -21,7 +21,7 @@ namespace SmartInvoices.Domain.Entities
         /// <summary>
         /// Opis pozycji faktury
         /// </summary>
-        public string Description { get; set; }
+        public string Description { get;  set; } = string.Empty;
         
         /// <summary>
         /// Ilość jednostek
@@ -56,7 +56,7 @@ namespace SmartInvoices.Domain.Entities
         /// <summary>
         /// Faktura, do której należy pozycja
         /// </summary>
-        public Invoice Invoice { get; set; }
+        public Invoice? Invoice { get;  set; } = null!;
         
         /// <summary>
         /// Kolekcja wniosków o zmianę dotyczących tej pozycji faktury

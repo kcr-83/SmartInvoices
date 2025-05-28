@@ -13,9 +13,9 @@ namespace SmartInvoices.Domain.Exceptions
         public int InvoiceId { get; }
         
         /// <summary>
-        /// Numer faktury (jeśli wyszukiwanie było po numerze faktury)
+        /// Numer faktury, która nie została znaleziona
         /// </summary>
-        public string InvoiceNumber { get; }
+        public string InvoiceNumber { get; } = string.Empty;
         
         /// <summary>
         /// Konstruktor z identyfikatorem faktury
@@ -31,8 +31,7 @@ namespace SmartInvoices.Domain.Exceptions
         /// Konstruktor z numerem faktury
         /// </summary>
         /// <param name="invoiceNumber">Numer faktury, która nie została znaleziona</param>
-        public InvoiceNotFoundException(string invoiceNumber)
-            : base($"Faktura o numerze {invoiceNumber} nie została znaleziona.")
+        public InvoiceNotFoundException(string invoiceNumber) : base($"Invoice with number {invoiceNumber} was not found")
         {
             InvoiceNumber = invoiceNumber;
         }

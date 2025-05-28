@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using SmartInvoices.Domain.Enums;
 
 namespace SmartInvoices.Domain.Entities
@@ -20,7 +22,7 @@ namespace SmartInvoices.Domain.Entities
         /// <summary>
         /// Identyfikator użytkownika składającego wniosek
         /// </summary>
-        public int UserId { get; set; }
+        public int RefUserId { get; set; }
 
         /// <summary>
         /// Identyfikator pozycji faktury, których dotyczy wniosek
@@ -45,12 +47,12 @@ namespace SmartInvoices.Domain.Entities
         /// <summary>
         /// Żądany opis pozycji faktury
         /// </summary>
-        public string RequestedDescription { get; set; }
+        public string RequestedDescription { get; set; } = string.Empty;
 
         /// <summary>
-        /// Powód złożenia wniosku o zmianę
+        /// Powód zmiany
         /// </summary>
-        public string Reason { get; set; }
+        public string Reason { get; set; } = string.Empty;
 
         /// <summary>
         /// Status wniosku o zmianę
@@ -58,9 +60,9 @@ namespace SmartInvoices.Domain.Entities
         public RequestStatus Status { get; set; }
 
         /// <summary>
-        /// Notatki administratora dotyczące wniosku
+        /// Notatki administratora dotyczące tej zmiany
         /// </summary>
-        public string AdminNotes { get; set; }
+        public string? AdminNotes { get; set; }
 
         /// <summary>
         /// Identyfikator użytkownika (administratora) rozpatrującego wniosek
@@ -73,14 +75,19 @@ namespace SmartInvoices.Domain.Entities
         public DateTime? ReviewDate { get; set; }
 
         /// <summary>
-        /// Użytkownik składający wniosek
+        /// Użytkownik, który złożył wniosek
         /// </summary>
-        public User User { get; set; }
+        public User User { get; private set; } = null!;
 
         /// <summary>
         /// Pozycje faktury, których dotyczy wniosek
         /// </summary>
-        public List<LineItem> LineItems { get; set; }
+        public ICollection<LineItem> LineItems { get; private set; } = new List<LineItem>();
+
+        /// <summary>
+        /// Faktura, której dotyczy wniosek
+        /// </summary>
+        public Invoice Invoice { get; private set; } = null!;
 
         /// <summary>
         /// Zatwierdza wniosek o zmianę

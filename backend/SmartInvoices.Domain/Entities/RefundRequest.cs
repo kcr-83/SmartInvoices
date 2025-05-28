@@ -15,7 +15,7 @@ namespace SmartInvoices.Domain.Entities
         /// <summary>
         /// Identyfikator użytkownika składającego wniosek
         /// </summary>
-        public int UserId { get; set; }
+        public int RefUserId { get; set; }
 
         /// <summary>
         /// Identyfikator faktury, której dotyczy wniosek o zwrot

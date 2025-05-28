@@ -1,10 +1,10 @@
 using FastEndpoints;
-using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using SmartInvoices.Application;
 using SmartInvoices.Infrastructure;
 using SmartInvoices.Persistence;
+using SmartInvoices.WebApi;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,13 +14,13 @@ builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddPersistenceServices(builder.Configuration);
 
-// Dodanie usług FastEndpoints
-builder.Services
-    .AddFastEndpoints()
-    .SwaggerDocument();
+// Dodanie usług FastEndpoints i Swagger
+builder.Services.AddFastEndpoints();
+builder.Services.AddSwaggerConfiguration(); // Używamy wyodrębnionej konfiguracji
 
 // Konfiguracja uwierzytelniania JWT
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -32,7 +32,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"] ?? "defaultDevelopmentKey123!@#"))
+                Encoding.UTF8.GetBytes(
+                    builder.Configuration["JwtSettings:Key"] ?? "defaultDevelopmentKey123!@#"
+                )
+            )
         };
     });
 
@@ -41,7 +44,8 @@ builder.Services.AddAuthorization();
 // Konfiguracja CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigins",
+    options.AddPolicy(
+        "AllowSpecificOrigins",
         builder =>
         {
             builder
@@ -53,7 +57,8 @@ builder.Services.AddCors(options =>
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
-        });
+        }
+    );
 });
 
 var app = builder.Build();
@@ -61,19 +66,19 @@ var app = builder.Build();
 // Configure HTTP request pipeline
 app.UseHttpsRedirection();
 app.UseCors("AllowSpecificOrigins");
+app.UseAuthentication();
+app.UseAuthorization();
 
-// Konfiguracja FastEndpoints
+// Użycie FastEndpoints i Swagger w odpowiedniej kolejności
 app.UseFastEndpoints(c =>
 {
     c.Endpoints.RoutePrefix = "api/v1";
     c.Serializer.Options.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     c.Versioning.Prefix = "v";
     c.Versioning.DefaultVersion = 1;
-})
-    .UseSwaggerGen();
+});
 
-app.UseAuthentication();
-app.UseAuthorization();
-
+// Użycie wyodrębnionej konfiguracji Swagger
+app.UseSwaggerConfiguration();
 
 app.Run();

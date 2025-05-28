@@ -1,3 +1,5 @@
+using System;
+
 namespace SmartInvoices.Domain.Entities
 {
     /// <summary>
@@ -13,12 +15,12 @@ namespace SmartInvoices.Domain.Entities
         /// <summary>
         /// Identyfikator wniosku o zwrot, do którego należy załącznik
         /// </summary>
-        public int RefundRequestId { get; set; }
+        public int RefRefundRequestId { get; set; }
 
         /// <summary>
         /// Nazwa pliku
         /// </summary>
-        public string FileName { get; set; }
+        public string FileName { get; set; } = string.Empty;
 
         /// <summary>
         /// Rozmiar pliku w bajtach
@@ -26,14 +28,14 @@ namespace SmartInvoices.Domain.Entities
         public int FileSize { get; set; }
 
         /// <summary>
-        /// Typ pliku (MIME type)
+        /// Typ pliku
         /// </summary>
-        public string FileType { get; set; }
+        public string FileType { get; set; } = string.Empty;
 
         /// <summary>
-        /// Ścieżka do pliku w systemie przechowywania (może być relatywna)
+        /// Ścieżka do pliku w systemie
         /// </summary>
-        public string FilePath { get; set; }
+        public string FilePath { get; set; } = string.Empty;
 
         /// <summary>
         /// Data przesłania pliku
@@ -41,8 +43,11 @@ namespace SmartInvoices.Domain.Entities
         public DateTime UploadDate { get; set; }
 
         /// <summary>
-        /// Wniosek o zwrot, do którego należy załącznik
+        /// Powiązany wniosek o zwrot kosztów
         /// </summary>
-        public RefundRequest RefundRequest { get; set; }
+        public RefundRequest? RefundRequest { get; set; } = null!;
+
+        // Dodaj konstruktory i metody fabryczne z poprawnymi inicjalizacjami,
+        // ponieważ w przekazanym fragmencie kodu ich nie widzę
     }
 }
