@@ -1,0 +1,233 @@
+<div class="admin-dashboard">
+  <div class="header">
+    <h1>Panel administracyjny</h1>
+    <p class="subtitle">Przegląd systemu SmartInvoices</p>
+
+    <div class="header-actions">
+      <button mat-raised-button (click)="refreshData()" [disabled]="loading()">
+        <mat-icon>refresh</mat-icon>
+        Odśwież dane
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading()" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Ładowanie danych...</p>
+  </div>
+
+  <div *ngIf="!loading()" class="dashboard-content">
+
+    <!-- Statistics Cards -->
+    <div class="stats-section">
+      <h2>Statystyki</h2>
+
+      <div class="stats-grid">
+        <!-- Invoice Statistics -->
+        <mat-card class="stat-card invoices-card">
+          <mat-card-header>
+            <div mat-card-avatar class="stat-avatar invoices-avatar">
+              <mat-icon>receipt</mat-icon>
+            </div>
+            <mat-card-title>Faktury</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="stat-main-number">{{stats().totalInvoices}}</div>
+            <div class="stat-breakdown">
+              <div class="breakdown-item">
+                <mat-chip color="primary" selected>
+                  Opłacone: {{stats().paidInvoices}}
+                </mat-chip>
+              </div>
+              <div class="breakdown-item">
+                <mat-chip color="warn" selected>
+                  Przeterminowane: {{stats().overdueInvoices}}
+                </mat-chip>
+              </div>
+              <div class="breakdown-item">
+                <mat-chip selected>
+                  Oczekujące: {{stats().pendingInvoices}}
+                </mat-chip>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button (click)="navigateToInvoices()">
+              <mat-icon>visibility</mat-icon>
+              Zobacz wszystkie
+            </button>
+          </mat-card-actions>
+        </mat-card>
+
+        <!-- Change Requests Statistics -->
+        <mat-card class="stat-card change-requests-card">
+          <mat-card-header>
+            <div mat-card-avatar class="stat-avatar change-requests-avatar">
+              <mat-icon>edit</mat-icon>
+            </div>
+            <mat-card-title>Żądania zmian</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="stat-main-number">{{stats().totalChangeRequests}}</div>
+            <div class="stat-breakdown">
+              <div class="breakdown-item">
+                <mat-chip color="warn" selected>
+                  Oczekujące: {{stats().pendingChangeRequests}}
+                </mat-chip>
+              </div>
+              <div class="breakdown-item">
+                <mat-chip color="primary" selected>
+                  Zatwierdzone: {{stats().approvedChangeRequests}}
+                </mat-chip>
+              </div>
+              <div class="breakdown-item">
+                <mat-chip color="accent" selected>
+                  Odrzucone: {{stats().rejectedChangeRequests}}
+                </mat-chip>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button (click)="navigateToChangeRequests()">
+              <mat-icon>visibility</mat-icon>
+              Zobacz wszystkie
+            </button>
+          </mat-card-actions>
+        </mat-card>
+
+        <!-- Refund Requests Statistics -->
+        <mat-card class="stat-card refund-requests-card">
+          <mat-card-header>
+            <div mat-card-avatar class="stat-avatar refund-requests-avatar">
+              <mat-icon>undo</mat-icon>
+            </div>
+            <mat-card-title>Żądania zwrotów</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="stat-main-number">{{stats().totalRefundRequests}}</div>
+            <div class="stat-breakdown">
+              <div class="breakdown-item">
+                <mat-chip color="warn" selected>
+                  Oczekujące: {{stats().pendingRefundRequests}}
+                </mat-chip>
+              </div>
+              <div class="breakdown-item">
+                <mat-chip color="primary" selected>
+                  Zatwierdzone: {{stats().approvedRefundRequests}}
+                </mat-chip>
+              </div>
+              <div class="breakdown-item">
+                <mat-chip selected>
+                  Zakończone: {{stats().completedRefundRequests}}
+                </mat-chip>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button (click)="navigateToRefundRequests()">
+              <mat-icon>visibility</mat-icon>
+              Zobacz wszystkie
+            </button>
+          </mat-card-actions>
+        </mat-card>
+
+        <!-- Users Statistics -->
+        <mat-card class="stat-card users-card">
+          <mat-card-header>
+            <div mat-card-avatar class="stat-avatar users-avatar">
+              <mat-icon>people</mat-icon>
+            </div>
+            <mat-card-title>Użytkownicy</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="stat-main-number">{{stats().totalUsers}}</div>
+            <div class="stat-breakdown">
+              <div class="breakdown-item">
+                <mat-chip color="primary" selected>
+                  Administratorzy: {{stats().adminUsers}}
+                </mat-chip>
+              </div>
+              <div class="breakdown-item">
+                <mat-chip selected>
+                  Użytkownicy: {{stats().regularUsers}}
+                </mat-chip>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button (click)="navigateToUsers()">
+              <mat-icon>visibility</mat-icon>
+              Zarządzaj użytkownikami
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions-section">
+      <h2>Szybkie akcje</h2>
+
+      <div class="actions-grid">
+        <button mat-raised-button color="primary" (click)="navigateToUsers()" class="action-button">
+          <mat-icon>people</mat-icon>
+          <div class="action-content">
+            <div class="action-title">Zarządzanie użytkownikami</div>
+            <div class="action-description">Dodawaj, edytuj i zarządzaj kontami użytkowników</div>
+          </div>
+        </button>
+
+        <button mat-raised-button color="accent" (click)="navigateToRequests()" class="action-button">
+          <mat-icon>assignment</mat-icon>
+          <div class="action-content">
+            <div class="action-title">Zarządzanie żądaniami</div>
+            <div class="action-description">Przeglądaj i obsługuj żądania zmian i zwrotów</div>
+          </div>
+        </button>
+
+        <button mat-raised-button (click)="navigateToInvoices()" class="action-button">
+          <mat-icon>receipt_long</mat-icon>
+          <div class="action-content">
+            <div class="action-title">Przegląd faktur</div>
+            <div class="action-description">Monitoruj status i historię wszystkich faktur</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Recent Activity -->
+    <div class="activity-section">
+      <h2>Ostatnia aktywność</h2>
+
+      <mat-card class="activity-card">
+        <mat-card-content>
+          <div class="activity-timeline">
+            <div class="timeline-item" *ngFor="let activity of recentActivity()">
+              <div class="timeline-icon" [ngClass]="'icon-' + activity.type">
+                <mat-icon [color]="activity.color">{{activity.icon}}</mat-icon>
+              </div>
+              <div class="timeline-content">
+                <div class="activity-title">{{activity.title}}</div>
+                <div class="activity-meta">
+                  <span class="activity-user">{{activity.user}}</span>
+                  <span class="activity-time">{{formatRelativeTime(activity.timestamp)}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="recentActivity().length === 0" class="no-activity">
+            <mat-icon>inbox</mat-icon>
+            <p>Brak ostatniej aktywności</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+  </div>
+</div>

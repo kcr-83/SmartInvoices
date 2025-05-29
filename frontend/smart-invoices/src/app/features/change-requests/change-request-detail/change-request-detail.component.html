@@ -1,0 +1,239 @@
+<div class="change-request-detail-container" *ngIf="changeRequest(); else notFoundTemplate">
+  <!-- Header -->
+  <div class="header-section">
+    <button mat-icon-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="header-content">
+      <h1>Szczegóły żądania zmiany</h1>
+      <div class="header-actions">
+        <button mat-stroked-button (click)="navigateToInvoice()">
+          <mat-icon>receipt</mat-icon>
+          Zobacz fakturę
+        </button>
+        <button mat-raised-button
+                color="primary"
+                *ngIf="changeRequest()?.status === 'pending'"
+                (click)="approveRequest()">
+          <mat-icon>check</mat-icon>
+          Zatwierdź
+        </button>
+        <button mat-raised-button
+                color="warn"
+                *ngIf="changeRequest()?.status === 'pending'"
+                (click)="rejectRequest()">
+          <mat-icon>close</mat-icon>
+          Odrzuć
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <!-- Request Info -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-card-title>Informacje o żądaniu</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Status:</label>
+            <mat-chip [color]="getStatusColor(changeRequest()!.status)" selected>
+              {{ getStatusDisplay(changeRequest()!.status) }}
+            </mat-chip>
+          </div>
+
+          <div class="info-item">
+            <label>Numer faktury:</label>
+            <span class="invoice-number">{{ changeRequest()?.invoiceNumber }}</span>
+          </div>
+
+          <div class="info-item">
+            <label>Data utworzenia:</label>
+            <span>{{ changeRequest()?.createdAt | date:'dd.MM.yyyy HH:mm' }}</span>
+          </div>
+
+          <div class="info-item" *ngIf="changeRequest()?.processedAt">
+            <label>Data przetworzenia:</label>
+            <span>{{ changeRequest()?.processedAt | date:'dd.MM.yyyy HH:mm' }}</span>
+          </div>
+
+          <div class="info-item" *ngIf="changeRequest()?.reason">
+            <label>Powód zmiany:</label>
+            <span>{{ changeRequest()?.reason }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Financial Impact -->
+    <mat-card class="impact-card">
+      <mat-card-header>
+        <mat-card-title>Wpływ finansowy</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="financial-impact">
+          <div class="impact-value" [class.positive]="getFinancialImpact() > 0" [class.negative]="getFinancialImpact() < 0">
+            <mat-icon>{{ getFinancialImpact() >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
+            <span class="amount">{{ getFinancialImpact() | currency:'PLN':'symbol':'1.2-2':'pl-PL' }}</span>
+          </div>
+          <p class="impact-description">
+            {{ getFinancialImpact() >= 0 ? 'Zwiększenie' : 'Zmniejszenie' }} wartości faktury
+          </p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Comparison Tab View -->
+  <mat-card class="comparison-card">
+    <mat-card-header>
+      <mat-card-title>Porównanie zmian</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-tab-group class="comparison-tabs">
+        <mat-tab label="Opis">
+          <div class="tab-content">
+            <div class="comparison-row">
+              <div class="comparison-col">
+                <h4>Opis oryginalny</h4>
+                <div class="original-value">
+                  {{ changeRequest()?.originalItem.description }}
+                </div>
+              </div>
+              <div class="comparison-divider">
+                <mat-icon>arrow_forward</mat-icon>
+              </div>
+              <div class="comparison-col">
+                <h4>Opis żądany</h4>
+                <div class="requested-value">
+                  {{ changeRequest()?.requestedItem.description }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Ilość">
+          <div class="tab-content">
+            <div class="comparison-row">
+              <div class="comparison-col">
+                <h4>Ilość oryginalna</h4>
+                <div class="original-value quantity">
+                  {{ changeRequest()?.originalItem.quantity }}
+                </div>
+              </div>
+              <div class="comparison-divider">
+                <mat-icon>arrow_forward</mat-icon>
+              </div>
+              <div class="comparison-col">
+                <h4>Ilość żądana</h4>
+                <div class="requested-value quantity">
+                  {{ changeRequest()?.requestedItem.quantity }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Cena jednostkowa">
+          <div class="tab-content">
+            <div class="comparison-row">
+              <div class="comparison-col">
+                <h4>Cena oryginalna</h4>
+                <div class="original-value price">
+                  {{ changeRequest()?.originalItem.unitPrice | currency:'PLN':'symbol':'1.2-2':'pl-PL' }}
+                </div>
+              </div>
+              <div class="comparison-divider">
+                <mat-icon>arrow_forward</mat-icon>
+              </div>
+              <div class="comparison-col">
+                <h4>Cena żądana</h4>
+                <div class="requested-value price">
+                  {{ changeRequest()?.requestedItem.unitPrice | currency:'PLN':'symbol':'1.2-2':'pl-PL' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Wartość całkowita">
+          <div class="tab-content">
+            <div class="comparison-row">
+              <div class="comparison-col">
+                <h4>Wartość oryginalna</h4>
+                <div class="original-value total">
+                  {{ (changeRequest()?.originalItem.quantity! * changeRequest()?.originalItem.unitPrice!) | currency:'PLN':'symbol':'1.2-2':'pl-PL' }}
+                </div>
+              </div>
+              <div class="comparison-divider">
+                <mat-icon>arrow_forward</mat-icon>
+              </div>
+              <div class="comparison-col">
+                <h4>Wartość żądana</h4>
+                <div class="requested-value total">
+                  {{ (changeRequest()?.requestedItem.quantity! * changeRequest()?.requestedItem.unitPrice!) | currency:'PLN':'symbol':'1.2-2':'pl-PL' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Related Invoice Info -->
+  <mat-card class="invoice-card" *ngIf="invoice()">
+    <mat-card-header>
+      <mat-card-title>Informacje o fakturze</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="invoice-info">
+        <div class="invoice-item">
+          <label>Numer faktury:</label>
+          <span>{{ invoice()?.number }}</span>
+        </div>
+        <div class="invoice-item">
+          <label>Data wystawienia:</label>
+          <span>{{ invoice()?.issueDate | date:'dd.MM.yyyy' }}</span>
+        </div>
+        <div class="invoice-item">
+          <label>Kontrahent:</label>
+          <span>{{ invoice()?.customer?.name || invoice()?.customerName }}</span>
+        </div>
+        <div class="invoice-item">
+          <label>Wartość faktury:</label>
+          <span>{{ invoice()?.totalAmount | currency:'PLN':'symbol':'1.2-2':'pl-PL' }}</span>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div class="actions">
+        <button mat-stroked-button (click)="navigateToInvoice()">
+          <mat-icon>open_in_new</mat-icon>
+          Otwórz fakturę
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<ng-template #notFoundTemplate>
+  <div class="not-found-container">
+    <mat-card>
+      <mat-card-content>
+        <div class="not-found">
+          <mat-icon>error_outline</mat-icon>
+          <h2>Żądanie nie zostało znalezione</h2>
+          <p>Nie można znaleźć żądania zmiany o podanym identyfikatorze.</p>
+          <button mat-raised-button color="primary" (click)="goBack()">
+            Powrót do listy
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</ng-template>

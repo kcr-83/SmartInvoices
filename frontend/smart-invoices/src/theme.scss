@@ -1,0 +1,24 @@
+@use '@angular/material' as mat;
+
+// Zdefiniujmy nasze własne kolory tematyczne
+// Uwaga: Używamy wbudowanych palet kolorów z Angular Material
+// Szczegóły kolorów zgodne z wcześniejszą definicją
+
+// Define the palettes for your theme
+$app-primary: mat.define-palette(mat.$blue-palette, 700);
+$app-accent: mat.define-palette(mat.$pink-palette, 500);
+$app-warn: mat.define-palette(mat.$red-palette, 500);
+
+// Create the theme object
+$app-theme: mat.define-light-theme((
+  color: (
+    primary: $app-primary,
+    accent: $app-accent,
+    warn: $app-warn,
+  ),
+  typography: mat.define-typography-config(),
+  density: 0,
+));
+
+// Apply the theme to Angular Material components
+@include mat.all-component-themes($app-theme);

@@ -1,0 +1,202 @@
+<div class="change-request-list-container">
+  <mat-card class="header-card">
+    <mat-card-content>
+      <div class="header">
+        <h1>Żądania zmiany pozycji faktur</h1>
+        <p class="subtitle">Zarządzaj żądaniami zmiany pozycji na fakturach</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Filters -->
+  <mat-card class="filter-card">
+    <mat-card-content>
+      <div class="filters">        <mat-form-field appearance="outline">
+          <mat-label>Numer faktury</mat-label>          <input matInput
+                 placeholder="Szukaj po numerze faktury"
+                 [value]="filter().invoiceNumber || ''"
+                 (input)="onInvoiceNumberChange($event)">>
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+          <mat-select [value]="filter().status || ''"
+                      (selectionChange)="updateFilter({status: $event.value})">
+            <mat-option value="">Wszystkie</mat-option>
+            <mat-option *ngFor="let status of statusOptions" [value]="status">
+              {{ getStatusDisplay(status) }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Data od</mat-label>
+          <input matInput
+                 [matDatepicker]="dateFromPicker"
+                 [value]="filter().dateFrom"
+                 (dateChange)="updateFilter({dateFrom: $event.value})">
+          <mat-datepicker-toggle matIconSuffix [for]="dateFromPicker"></mat-datepicker-toggle>
+          <mat-datepicker #dateFromPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Data do</mat-label>
+          <input matInput
+                 [matDatepicker]="dateToPicker"
+                 [value]="filter().dateTo"
+                 (dateChange)="updateFilter({dateTo: $event.value})">
+          <mat-datepicker-toggle matIconSuffix [for]="dateToPicker"></mat-datepicker-toggle>
+          <mat-datepicker #dateToPicker></mat-datepicker>
+        </mat-form-field>
+
+        <button mat-stroked-button (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+          Wyczyść filtry
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Results -->
+  <mat-card class="results-card">
+    <mat-card-content>
+      <div class="results-header">
+        <h3>Znalezione żądania ({{ filteredChangeRequests().length }})</h3>
+      </div>
+
+      <div class="table-container" *ngIf="!loading(); else loadingTemplate">
+        <table mat-table [dataSource]="filteredChangeRequests()" class="change-requests-table">
+          <!-- Invoice Number Column -->
+          <ng-container matColumnDef="invoiceNumber">
+            <th mat-header-cell *matHeaderCellDef>Numer faktury</th>
+            <td mat-cell *matCellDef="let request">
+              <a [routerLink]="['/invoices', request.invoiceId]" class="invoice-link">
+                {{ request.invoiceNumber }}
+              </a>
+            </td>
+          </ng-container>
+
+          <!-- Original Description Column -->
+          <ng-container matColumnDef="originalDescription">
+            <th mat-header-cell *matHeaderCellDef>Opis oryginalny</th>
+            <td mat-cell *matCellDef="let request">
+              <div class="description-cell">
+                {{ request.originalItem.description }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Requested Description Column -->
+          <ng-container matColumnDef="requestedDescription">
+            <th mat-header-cell *matHeaderCellDef>Opis żądany</th>
+            <td mat-cell *matCellDef="let request">
+              <div class="description-cell requested">
+                {{ request.requestedItem.description }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Original Quantity Column -->
+          <ng-container matColumnDef="originalQuantity">
+            <th mat-header-cell *matHeaderCellDef>Ilość oryginalna</th>
+            <td mat-cell *matCellDef="let request">
+              {{ request.originalItem.quantity }}
+            </td>
+          </ng-container>
+
+          <!-- Requested Quantity Column -->
+          <ng-container matColumnDef="requestedQuantity">
+            <th mat-header-cell *matHeaderCellDef>Ilość żądana</th>
+            <td mat-cell *matCellDef="let request">
+              <span class="requested-value">{{ request.requestedItem.quantity }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Original Price Column -->
+          <ng-container matColumnDef="originalPrice">
+            <th mat-header-cell *matHeaderCellDef>Cena oryginalna</th>
+            <td mat-cell *matCellDef="let request">
+              {{ request.originalItem.unitPrice | currency:'PLN':'symbol':'1.2-2':'pl-PL' }}
+            </td>
+          </ng-container>
+
+          <!-- Requested Price Column -->
+          <ng-container matColumnDef="requestedPrice">
+            <th mat-header-cell *matHeaderCellDef>Cena żądana</th>
+            <td mat-cell *matCellDef="let request">
+              <span class="requested-value">
+                {{ request.requestedItem.unitPrice | currency:'PLN':'symbol':'1.2-2':'pl-PL' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let request">
+              <mat-chip [color]="getStatusColor(request.status)" selected>
+                {{ getStatusDisplay(request.status) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Created At Column -->
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>Data utworzenia</th>
+            <td mat-cell *matCellDef="let request">
+              {{ request.createdAt | date:'dd.MM.yyyy HH:mm' }}
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Akcje</th>
+            <td mat-cell *matCellDef="let request">
+              <div class="action-buttons">
+                <button mat-icon-button
+                        [routerLink]="['/change-requests', request.id]"
+                        matTooltip="Zobacz szczegóły">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+
+                <button mat-icon-button
+                        color="primary"
+                        *ngIf="request.status === 'pending'"
+                        (click)="approveRequest(request.id)"
+                        matTooltip="Zatwierdź">
+                  <mat-icon>check</mat-icon>
+                </button>
+
+                <button mat-icon-button
+                        color="warn"
+                        *ngIf="request.status === 'pending'"
+                        (click)="rejectRequest(request.id)"
+                        matTooltip="Odrzuć">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+              class="clickable-row"></tr>
+        </table>
+      </div>
+
+      <ng-template #loadingTemplate>
+        <div class="loading-container">
+          <mat-spinner></mat-spinner>
+          <p>Ładowanie żądań zmiany...</p>
+        </div>
+      </ng-template>
+
+      <div *ngIf="!loading() && filteredChangeRequests().length === 0" class="no-results">
+        <mat-icon>inbox</mat-icon>
+        <h3>Brak żądań zmiany</h3>
+        <p>Nie znaleziono żądań zmiany spełniających kryteria wyszukiwania.</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

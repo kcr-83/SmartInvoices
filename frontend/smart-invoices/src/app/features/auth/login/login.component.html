@@ -1,0 +1,148 @@
+<div class="login-container">
+  <div class="login-content">
+
+    <!-- Header -->
+    <div class="login-header">
+      <div class="logo">
+        <mat-icon>receipt_long</mat-icon>
+        <h1>SmartInvoices</h1>
+      </div>
+      <p class="subtitle">Zaloguj się do swojego konta</p>
+    </div>
+
+    <!-- Login Form -->
+    <mat-card class="login-card">
+      <mat-card-content>
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+
+          <!-- Email Field -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Adres e-mail</mat-label>
+            <input matInput
+                   type="email"
+                   formControlName="email"
+                   autocomplete="email"
+                   placeholder="wprowadź@email.com">
+            <mat-icon matSuffix>email</mat-icon>
+            <mat-error *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+              {{getEmailErrorMessage()}}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Password Field -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Hasło</mat-label>
+            <input matInput
+                   [type]="hidePassword() ? 'password' : 'text'"
+                   formControlName="password"
+                   autocomplete="current-password"
+                   placeholder="Wprowadź hasło">
+            <button mat-icon-button
+                    matSuffix
+                    type="button"
+                    (click)="togglePasswordVisibility()"
+                    [attr.aria-label]="'Pokaż hasło'"
+                    [attr.aria-pressed]="!hidePassword()">
+              <mat-icon>{{hidePassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+              {{getPasswordErrorMessage()}}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Remember Me -->
+          <div class="form-options">
+            <mat-checkbox formControlName="rememberMe">
+              Zapamiętaj mnie
+            </mat-checkbox>
+          </div>
+
+          <!-- Login Button -->
+          <button mat-raised-button
+                  color="primary"
+                  type="submit"
+                  class="login-button"
+                  [disabled]="isLoading()">        <mat-spinner *ngIf="isLoading()" diameter="20" class="login-spinner"></mat-spinner>
+            <span *ngIf="!isLoading()">Zaloguj się</span>
+            <span *ngIf="isLoading()">Logowanie...</span>
+          </button>
+
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Demo Credentials -->
+    <div class="demo-section">
+      <h3>Dane demonstracyjne</h3>
+      <p class="demo-description">
+        Użyj poniższych danych, aby przetestować aplikację:
+      </p>
+
+      <div class="demo-buttons">
+        <button mat-stroked-button
+                (click)="fillDemoCredentials('admin')"
+                class="demo-button admin-demo">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <div class="demo-info">
+            <div class="demo-title">Administrator</div>
+            <div class="demo-email">admin&#64;smartinvoices.com</div>
+          </div>
+        </button>
+
+        <button mat-stroked-button
+                (click)="fillDemoCredentials('user')"
+                class="demo-button user-demo">
+          <mat-icon>person</mat-icon>
+          <div class="demo-info">
+            <div class="demo-title">Użytkownik</div>
+            <div class="demo-email">user&#64;smartinvoices.com</div>
+          </div>
+        </button>
+      </div>
+
+      <div class="demo-password">
+        <mat-icon>info</mat-icon>
+        <span>Hasło dla obu kont: <code>password123</code></span>
+      </div>
+    </div>
+
+    <!-- Features Preview -->
+    <div class="features-section">
+      <h3>Funkcjonalności aplikacji</h3>
+      <div class="features-grid">
+        <div class="feature-item">
+          <mat-icon>receipt</mat-icon>
+          <div class="feature-text">
+            <div class="feature-title">Zarządzanie fakturami</div>
+            <div class="feature-description">Przeglądaj i zarządzaj fakturami</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <mat-icon>edit</mat-icon>
+          <div class="feature-text">
+            <div class="feature-title">Żądania zmian</div>
+            <div class="feature-description">Zgłaszaj zmiany w pozycjach faktury</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <mat-icon>undo</mat-icon>
+          <div class="feature-text">
+            <div class="feature-title">Zwroty</div>
+            <div class="feature-description">Wnioskuj o zwrot całości lub części faktury</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <div class="feature-text">
+            <div class="feature-title">Panel administracyjny</div>
+            <div class="feature-description">Zarządzaj użytkownikami i żądaniami</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

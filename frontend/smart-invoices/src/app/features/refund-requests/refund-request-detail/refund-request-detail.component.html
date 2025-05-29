@@ -1,0 +1,341 @@
+<div class="refund-request-detail" *ngIf="!loading() && !error()">
+  <div class="header">
+    <div class="title">
+      <button mat-icon-button (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>Żądanie zwrotu</h1>
+    </div>
+    <p class="subtitle" *ngIf="refundRequest()">
+      {{refundRequest()!.invoiceNumber}} • {{getTypeLabel(refundRequest()!.type)}}
+    </p>
+
+    <div class="status-section" *ngIf="refundRequest()">
+      <mat-chip-listbox>
+        <mat-chip [color]="getStatusColor(refundRequest()!.status)" selected>
+          {{getStatusLabel(refundRequest()!.status)}}
+        </mat-chip>
+      </mat-chip-listbox>
+
+      <div class="actions" *ngIf="isAdmin()">
+        <button mat-raised-button
+                color="primary"
+                (click)="approveRequest()"
+                [disabled]="!canApprove()">
+          <mat-icon>check_circle</mat-icon>
+          Zatwierdź
+        </button>
+        <button mat-raised-button
+                color="warn"
+                (click)="rejectRequest()"
+                [disabled]="!canReject()">
+          <mat-icon>cancel</mat-icon>
+          Odrzuć
+        </button>
+        <button mat-raised-button
+                (click)="processRequest()"
+                [disabled]="!canProcess()">
+          <mat-icon>play_circle</mat-icon>
+          Rozpocznij przetwarzanie
+        </button>
+        <button mat-button (click)="exportToPDF()">
+          <mat-icon>picture_as_pdf</mat-icon>
+          Eksportuj PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="content" *ngIf="refundRequest()">
+    <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedIndexChange)="selectedTabIndex.set($event)">
+
+      <!-- Details Tab -->
+      <mat-tab label="Szczegóły">
+        <div class="tab-content">
+
+          <!-- Request Summary -->
+          <div class="summary-section">
+            <h3>
+              <mat-icon>description</mat-icon>
+              Podsumowanie żądania
+            </h3>
+
+            <div class="summary-grid">
+              <mat-card class="summary-card amount-card">
+                <mat-card-header>
+                  <mat-card-title>Kwota zwrotu</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="amount-display">
+                    {{formatCurrency(refundRequest()!.amount)}}
+                  </div>
+                  <div class="amount-type">
+                    {{getTypeLabel(refundRequest()!.type)}}
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="summary-card invoice-card" *ngIf="relatedInvoice()">
+                <mat-card-header>
+                  <mat-card-title>Faktura</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="invoice-number">{{relatedInvoice()!.invoiceNumber}}</div>
+                  <div class="invoice-details">
+                    <div>Kwota: {{formatCurrency(relatedInvoice()!.totalAmount)}}</div>
+                    <div>Data: {{formatShortDate(relatedInvoice()!.issueDate)}}</div>
+                  </div>
+                  <button mat-stroked-button (click)="viewInvoice()" class="view-invoice-btn">
+                    <mat-icon>visibility</mat-icon>
+                    Zobacz fakturę
+                  </button>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="summary-card status-card">
+                <mat-card-header>
+                  <mat-card-title>Status</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="status-display">
+                    <mat-chip [color]="getStatusColor(refundRequest()!.status)" selected>
+                      {{getStatusLabel(refundRequest()!.status)}}
+                    </mat-chip>
+                  </div>
+                  <div class="status-info">
+                    <div>Zgłoszono: {{formatShortDate(refundRequest()!.requestDate)}}</div>
+                    <div *ngIf="refundRequest()!.processedBy">
+                      Przetworzone przez: {{refundRequest()!.processedBy}}
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Request Details -->
+          <div class="details-section">
+            <h3>
+              <mat-icon>info</mat-icon>
+              Szczegóły żądania
+            </h3>
+
+            <div class="details-grid">
+              <div class="detail-card">
+                <div class="detail-title">Zgłaszający</div>
+                <div class="detail-content">
+                  <div class="user-info">
+                    <mat-icon>person</mat-icon>
+                    {{refundRequest()!.requestedBy}}
+                  </div>
+                </div>
+              </div>
+
+              <div class="detail-card">
+                <div class="detail-title">Data zgłoszenia</div>
+                <div class="detail-content">
+                  <div class="date-info">
+                    <mat-icon>event</mat-icon>
+                    {{formatDate(refundRequest()!.requestDate)}}
+                  </div>
+                </div>
+              </div>
+
+              <div class="detail-card" *ngIf="refundRequest()!.processedBy">
+                <div class="detail-title">Przetwarzane przez</div>
+                <div class="detail-content">
+                  <div class="user-info">
+                    <mat-icon>admin_panel_settings</mat-icon>
+                    {{refundRequest()!.processedBy}}
+                  </div>
+                </div>
+              </div>
+
+              <div class="detail-card">
+                <div class="detail-title">Typ zwrotu</div>                <div class="detail-content">
+                  <div class="type-info">
+                    <mat-icon>{{ refundRequest()!.reason === RefundReason.ProductDefective ? 'done_all' : 'done' }}</mat-icon>
+                    {{getTypeLabel(refundRequest()!.reason)}}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Reason -->
+            <div class="reason-section">
+              <h4>Powód zwrotu</h4>
+              <div class="reason-content">
+                {{refundRequest()!.reason}}
+              </div>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Documents -->
+          <div class="documents-section" *ngIf="refundRequest()!.documents && refundRequest()!.documents!.length > 0">
+            <h3>
+              <mat-icon>attach_file</mat-icon>
+              Załączone dokumenty
+            </h3>
+
+            <mat-list>
+              <mat-list-item *ngFor="let document of refundRequest()!.documents">
+                <mat-icon matListItemIcon>description</mat-icon>
+                <div matListItemTitle>{{document.name}}</div>
+                <div matListItemLine>{{document.size}} • {{document.type}}</div>                <button mat-icon-button (click)="downloadDocument(document.url || '')" matListItemMeta>
+                  <mat-icon>download</mat-icon>
+                </button>
+              </mat-list-item>
+            </mat-list>
+          </div>          <!-- Admin Actions -->
+          <div class="approval-section" *ngIf="isAdmin() && refundRequest()!.status === RequestStatus.Pending">
+            <h3>
+              <mat-icon>gavel</mat-icon>
+              Akcje administratora
+            </h3>
+
+            <div class="approval-actions">
+              <button mat-raised-button
+                      color="primary"
+                      (click)="approveRequest()"
+                      class="approval-button">
+                <mat-icon>check_circle</mat-icon>
+                Zatwierdź żądanie
+              </button>
+              <button mat-raised-button
+                      color="warn"
+                      (click)="rejectRequest()"
+                      class="approval-button">
+                <mat-icon>cancel</mat-icon>
+                Odrzuć żądanie
+              </button>
+            </div>
+
+            <div class="approval-note">
+              <mat-icon>info</mat-icon>
+              Zatwierdzenie lub odrzucenie żądania powiadomi użytkownika e-mailem.
+            </div>
+          </div>
+
+        </div>
+      </mat-tab>
+
+      <!-- History Tab -->
+      <mat-tab label="Historia">
+        <div class="tab-content">
+
+          <div class="history-section">
+            <h3>
+              <mat-icon>history</mat-icon>
+              Historia przetwarzania
+            </h3>
+
+            <div class="history-timeline">
+              <div class="timeline-item" *ngFor="let item of refundHistory()">
+                <div class="timeline-icon">
+                  <mat-icon>{{item.icon}}</mat-icon>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <div class="timeline-title">{{item.action}}</div>
+                    <div class="timeline-date">{{formatDate(item.date)}}</div>
+                  </div>
+                  <div class="timeline-description">{{item.description}}</div>
+                  <div class="timeline-user">
+                    <mat-icon>person</mat-icon>
+                    {{item.user}}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </mat-tab>
+
+      <!-- Invoice Tab -->
+      <mat-tab label="Faktura" *ngIf="relatedInvoice()">
+        <div class="tab-content">
+
+          <div class="invoice-section">
+            <h3>
+              <mat-icon>receipt</mat-icon>
+              Szczegóły faktury
+            </h3>
+
+            <mat-card class="invoice-detail-card">
+              <mat-card-header>                <mat-card-title>{{relatedInvoice()!.invoiceNumber}}</mat-card-title>
+                <mat-card-subtitle>
+                  <mat-chip [color]="relatedInvoice()!.status === InvoiceStatus.Paid ? '' : 'warn'" selected>
+                    {{relatedInvoice()!.status === InvoiceStatus.Paid ? 'Opłacona' :
+                      relatedInvoice()!.status === InvoiceStatus.Draft ? 'Oczekująca' : 'Przeterminowana'}}
+                  </mat-chip>
+                </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="invoice-info-grid">
+                  <div class="info-item">
+                    <span class="label">Kwota:</span>
+                    <span class="value">{{formatCurrency(relatedInvoice()!.totalAmount)}}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">Data wystawienia:</span>
+                    <span class="value">{{formatShortDate(relatedInvoice()!.issueDate)}}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">Termin płatności:</span>
+                    <span class="value">{{formatShortDate(relatedInvoice()!.dueDate)}}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="label">Klient:</span>
+                    <span class="value">{{relatedInvoice()!.customerName}}</span>
+                  </div>
+                </div>
+
+                <div class="invoice-actions">
+                  <button mat-raised-button color="primary" (click)="viewInvoice()">
+                    <mat-icon>visibility</mat-icon>
+                    Zobacz pełne szczegóły faktury
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </div>
+</div>
+
+<!-- Loading state -->
+<div *ngIf="loading()" class="loading-container">
+  <mat-spinner></mat-spinner>
+  <p>Ładowanie szczegółów żądania zwrotu...</p>
+</div>
+
+<!-- Error state -->
+<div *ngIf="error()" class="error-container">
+  <mat-icon>error</mat-icon>
+  <h2>Błąd ładowania danych</h2>
+  <p>{{error()}}</p>
+  <button mat-raised-button color="primary" (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+    Wróć do listy
+  </button>
+</div>
+
+<!-- Not found state -->
+<div *ngIf="!loading() && !error() && !refundRequest()" class="error-container">
+  <mat-icon>search_off</mat-icon>
+  <h2>Żądanie zwrotu nie znalezione</h2>
+  <p>Żądanie zwrotu o podanym identyfikatorze nie istnieje.</p>
+  <button mat-raised-button color="primary" (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+    Wróć do listy
+  </button>
+</div>
