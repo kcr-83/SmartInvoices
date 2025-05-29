@@ -55,5 +55,5 @@ public class InvoiceDetailDto
     /// <summary>
     /// Lista pozycji faktury.
     /// </summary>
-    public List<LineItemDto> LineItems { get; set; } = new List<LineItemDto>();
+    public List<LineItems.LineItemDto> LineItems { get; set; } = new List<LineItems.LineItemDto>();
 }

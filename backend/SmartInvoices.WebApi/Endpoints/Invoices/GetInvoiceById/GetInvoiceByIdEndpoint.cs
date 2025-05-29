@@ -81,12 +81,12 @@ public class GetInvoiceByIdEndpoint : Endpoint<GetInvoiceByIdRequest, GetInvoice
                     li =>
                         new LineItemResponse
                         {
-                            LineItemId = li.Id,
+                            LineItemId = li.LineItemId,
                             Description = li.Description,
                             Quantity = li.Quantity,
                             UnitPrice = li.UnitPrice,
-                            //TaxRate = li.TaxRate,
-                            TotalPrice = li.TotalAmount
+                            TaxRate = li.TaxRate,
+                            TotalPrice = li.TotalPrice
                         }
                 )
                 .ToList()

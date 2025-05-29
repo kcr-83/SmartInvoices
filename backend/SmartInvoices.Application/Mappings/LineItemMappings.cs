@@ -1,4 +1,4 @@
-using SmartInvoices.Application.DTOs;
+using SmartInvoices.Application.DTOs.LineItems;
 using SmartInvoices.Domain.Entities;
 
 namespace SmartInvoices.Application.Mappings;
@@ -16,12 +16,12 @@ public static class LineItemMappings
     public static LineItemDto ToDto(this LineItem lineItem) =>
         new LineItemDto
         {
-            Id = lineItem.LineItemId,
-            InvoiceId = lineItem.InvoiceId,
+            LineItemId = lineItem.LineItemId,
             Description = lineItem.Description,
             Quantity = lineItem.Quantity,
             UnitPrice = lineItem.UnitPrice,
-            TotalAmount = lineItem.TotalPrice
+            TaxRate = lineItem.TaxRate,
+            TotalPrice = lineItem.TotalPrice
         };
 
     /// <summary>

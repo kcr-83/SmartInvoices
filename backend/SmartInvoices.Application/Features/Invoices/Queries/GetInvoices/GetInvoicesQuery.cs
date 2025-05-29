@@ -1,6 +1,6 @@
 using SmartInvoices.Application.Common;
 using SmartInvoices.Application.Common.Mediator;
-using SmartInvoices.Application.DTOs;
+using SmartInvoices.Application.DTOs.Invoices;
 
 namespace SmartInvoices.Application.Features.Invoices.Queries.GetInvoices;
 

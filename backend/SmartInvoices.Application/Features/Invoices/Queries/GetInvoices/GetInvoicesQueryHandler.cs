@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SmartInvoices.Application.Common;
 using SmartInvoices.Application.Common.Mediator;
-using SmartInvoices.Application.DTOs;
+using SmartInvoices.Application.DTOs.Invoices;
 using SmartInvoices.Application.Interfaces.Repositories;
 using SmartInvoices.Application.Mappings;
 
